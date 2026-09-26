@@ -255,3 +255,107 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+// ==========================================
+// 4. SELENÉ 3D AVATAR & SUBTITLE SYNCHRONIZER
+// ==========================================
+let scene, camera, renderer, avatarModel;
+
+function initAvatarViewport() {
+  const container = document.getElementById("avatarViewport");
+  if (!container) return;
+
+  // Clear existing static placeholder elements
+  container.innerHTML = "";
+
+  const width = container.clientWidth || 180;
+  const height = container.clientHeight || 180;
+
+  // 1. Scene Setup
+  scene = new THREE.Scene();
+
+  // 2. Camera Setup
+  camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.set(0, 1.4, 2.5); // Focus on upper torso / head
+
+  // 3. Renderer Setup
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer.domElement);
+
+  // 4. Custom Selené Purple Ambient & Key Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+
+  const purpleKeyLight = new THREE.PointLight(0xb78be9, 2, 10);
+  purpleKeyLight.position.set(2, 3, 2);
+  scene.add(purpleKeyLight);
+
+  const cyanRimLight = new THREE.PointLight(0x7000ff, 1.5, 10);
+  cyanRimLight.position.set(-2, 1, -1);
+  scene.add(cyanRimLight);
+
+  // 5. Load GLTF / GLB Model
+  const loader = new THREE.GLTFLoader();
+  
+  // Place your model file at: assets/models/selene.glb
+  loader.load(
+    "assets/models/selene.glb",
+    (gltf) => {
+      avatarModel = gltf.scene;
+      avatarModel.position.set(0, -0.2, 0);
+      avatarModel.scale.set(1, 1, 1);
+      scene.add(avatarModel);
+    },
+    undefined,
+    (error) => {
+      console.warn("Avatar model not found at assets/models/selene.glb — running ambient light viewport placeholder.", error);
+    }
+  );
+
+  // 6. Idle Floating Animation Loop
+  let clock = new THREE.Clock();
+  function animateAvatar() {
+    requestAnimationFrame(animateAvatar);
+
+    const elapsedTime = clock.getElapsedTime();
+
+    if (avatarModel) {
+      // Gentle floating breathing motion
+      avatarModel.position.y = -0.2 + Math.sin(elapsedTime * 1.5) * 0.03;
+      avatarModel.rotation.y = Math.sin(elapsedTime * 0.5) * 0.05;
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  animateAvatar();
+}
+
+// Subtitle Typewriter Effect for Selené's Voice Overlays
+function triggerSeleneSpeech(text) {
+  const subtitleElem = document.getElementById("subtitleOutput");
+  if (!subtitleElem) return;
+
+  subtitleElem.textContent = "";
+  let index = 0;
+
+  // Pulse effect on avatar frame while speaking
+  const avatarFrame = document.querySelector(".avatar-viewport");
+  if (avatarFrame) avatarFrame.style.boxShadow = "0 0 45px rgba(183, 139, 233, 0.8)";
+
+  const typeInterval = setInterval(() => {
+    if (index < text.length) {
+      subtitleElem.textContent += text.charAt(index);
+      index++;
+    } else {
+      clearInterval(typeInterval);
+      if (avatarFrame) avatarFrame.style.boxShadow = "0 0 35px var(--purple-glow)";
+    }
+  }, 25);
+}
+
+// Initialize avatar once DOM is ready
+window.addEventListener("DOMContentLoaded", () => {
+  initAvatarViewport();
+});
