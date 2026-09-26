@@ -237,8 +237,16 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
     `;
+    <textarea 
+  id="domainQueryInput" 
+  placeholder="${spec.placeholder}" 
+  spellcheck="true" 
+  autocorrect="on" 
+  autocapitalize="sentences">
+</textarea>
 
     activeDomainContainer.classList.remove("hidden");
+    
 
     // Return to Modules Handler
     const backBtn = document.getElementById("backToHomeBtn");
