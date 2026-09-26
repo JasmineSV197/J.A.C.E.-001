@@ -1,114 +1,114 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // --- Canvas Floating Purple Bubbles Engine ---
-  const canvas = document.getElementById("bubbleCanvas");
-  const ctx = canvas.getContext("2d");
+/* Dynamic Domain Workspace Panel */
+.domain-view {
+  width: 100%;
+  max-width: 800px;
+  animation: fadeIn 0.3s ease-in-out;
+}
 
-  let width = (canvas.width = window.innerWidth);
-  let height = (canvas.height = window.innerHeight);
+.domain-view.hidden {
+  display: none;
+}
 
-  window.addEventListener("resize", () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  });
+.workspace-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-purple);
+  border-radius: 14px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 25px var(--purple-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  // Effect Control Parameters
-  const fxParams = {
-    count: 50,
-    maxSpeed: 3,
-    maxSize: 15,
-    glow: 25
-  };
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  class Bubble {
-    constructor() {
-      this.reset();
-    }
+.active-tag {
+  color: var(--theme-purple);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
 
-    reset() {
-      this.x = Math.random() * width;
-      this.y = height + Math.random() * 100;
-      this.radius = Math.random() * fxParams.maxSize + 2;
-      this.speed = (Math.random() * 0.5 + 0.2) * (fxParams.maxSpeed / 2);
-      this.alpha = Math.random() * 0.6 + 0.2;
-    }
+.back-btn {
+  background: rgba(183, 139, 233, 0.1);
+  border: 1px solid var(--border-purple);
+  color: var(--text-bright);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-    update() {
-      this.y -= this.speed;
-      if (this.y < -this.radius) {
-        this.reset();
-      }
-    }
+.back-btn:hover {
+  background: var(--theme-purple);
+  color: #0c0a14;
+}
 
-    draw() {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(183, 139, 233, ${this.alpha})`;
-      ctx.shadowBlur = fxParams.glow;
-      ctx.shadowColor = "#b78be9";
-      ctx.fill();
-      ctx.shadowBlur = 0; // Reset blur for optimization
-    }
-  }
+.workspace-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  let bubbles = Array.from({ length: fxParams.count }, () => new Bubble());
+.visual-display-panel {
+  width: 100%;
+  height: 180px;
+  background: rgba(12, 10, 20, 0.6);
+  border: 1px dashed var(--border-purple);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  function animate() {
-    ctx.clearRect(0, 0, width, height);
-    bubbles.forEach((b) => {
-      b.update();
-      b.draw();
-    });
-    requestAnimationFrame(animate);
-  }
+.visual-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-muted);
+}
 
-  animate();
+.input-console {
+  display: flex;
+  gap: 10px;
+}
 
-  // --- Effect Control Panel Handlers ---
-  const fxPanel = document.getElementById("fxPanel");
-  const toggleFxBtn = document.getElementById("toggleFxPanelBtn");
+.input-console textarea {
+  flex-grow: 1;
+  height: 60px;
+  background: rgba(12, 10, 20, 0.8);
+  border: 1px solid var(--border-purple);
+  border-radius: 8px;
+  color: var(--text-bright);
+  padding: 10px;
+  font-family: var(--font-serif);
+  resize: none;
+  outline: none;
+}
 
-  toggleFxBtn.addEventListener("click", () => {
-    fxPanel.classList.toggle("hidden");
-  });
+.input-console textarea:focus {
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
 
-  document.getElementById("bubbleCount").addEventListener("input", (e) => {
-    fxParams.count = parseInt(e.target.value);
-    bubbles = Array.from({ length: fxParams.count }, () => new Bubble());
-  });
+.execute-btn {
+  background: var(--theme-purple);
+  color: #0c0a14;
+  font-weight: bold;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-  document.getElementById("bubbleSpeed").addEventListener("input", (e) => {
-    fxParams.maxSpeed = parseInt(e.target.value);
-    bubbles.forEach((b) => (b.speed = (Math.random() * 0.5 + 0.2) * (fxParams.maxSpeed / 2)));
-  });
+.execute-btn:hover {
+  box-shadow: 0 0 15px var(--purple-glow);
+}
 
-  document.getElementById("bubbleSize").addEventListener("input", (e) => {
-    fxParams.maxSize = parseInt(e.target.value);
-  });
-
-  document.getElementById("glowIntensity").addEventListener("input", (e) => {
-    fxParams.glow = parseInt(e.target.value);
-  });
-
-  document.getElementById("resetFxBtn").addEventListener("click", () => {
-    fxParams.count = 50;
-    fxParams.maxSpeed = 3;
-    fxParams.maxSize = 15;
-    fxParams.glow = 25;
-    document.getElementById("bubbleCount").value = 50;
-    document.getElementById("bubbleSpeed").value = 3;
-    document.getElementById("bubbleSize").value = 15;
-    document.getElementById("glowIntensity").value = 25;
-    bubbles = Array.from({ length: fxParams.count }, () => new Bubble());
-  });
-
-  // --- Module Selection Interactions ---
-  const moduleCards = document.querySelectorAll(".module-card");
-  const subtitleOutput = document.getElementById("subtitleOutput");
-
-  moduleCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      const domain = card.getAttribute("data-domain");
-      subtitleOutput.textContent = `"Loading specialized module: ${domain.toUpperCase()}..."`;
-    });
-  });
-});
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
