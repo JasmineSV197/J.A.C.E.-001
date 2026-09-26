@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (parent) parent.appendChild(activeDomainContainer);
   }
 
-  // Domain Rules & Specifications Matrix
+// Expanded Domain Rules & Specifications Matrix
   const domainSpecs = {
     mathematics: {
       title: "Mathematics Controller",
@@ -156,9 +156,14 @@ document.addEventListener("DOMContentLoaded", () => {
       placeholder: "Input quantum circuit parameters or algorithm query..."
     },
     physics: {
-      title: "Physics & Chemistry Suite",
-      subtitle: '"Physical systems initialized. Ready for molecular and mechanics simulation analysis."',
-      placeholder: "Describe the physical system or chemical reaction..."
+      title: "Physics Mechanics & Dynamics Suite",
+      subtitle: '"Physics module active. Ready for kinematics, thermodynamics, and vector field analysis."',
+      placeholder: "Describe the physical system or mechanics query..."
+    },
+    chemistry: {
+      title: "Chemistry & Molecular Simulation",
+      subtitle: '"Chemical analysis online. Molecular orbital display and stoichiometry ready."',
+      placeholder: "Input chemical reaction, molecular formula, or synthesis query..."
     },
     biology: {
       title: "Biology & Genetics Workspace",
@@ -166,9 +171,14 @@ document.addEventListener("DOMContentLoaded", () => {
       placeholder: "Ask about genetic sequences, cellular biology, or organisms..."
     },
     history: {
-      title: "History & Psychology Matrix",
-      subtitle: '"Contextual humanities matrix connected. Primary source analysis active."',
-      placeholder: "Specify historical era, cognitive model, or research topic..."
+      title: "Historical Analysis & Archival Matrix",
+      subtitle: '"Historical matrix connected. Primary source evaluation and timeline mapping active."',
+      placeholder: "Specify historical era, event, or archival query..."
+    },
+    psychology: {
+      title: "Psychology & Cognitive Science Engine",
+      subtitle: '"Cognitive framework loaded. Behavioral models and neural network analogies ready."',
+      placeholder: "Describe cognitive phenomenon, psychological framework, or study..."
     },
     translation: {
       title: "Real-Time Multilingual Translation",
