@@ -3,32 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Selené Vesperiine</title>
-  
-  <!-- CSS Stylesheet -->
+  <meta name="theme-color" content="#0c0a14">
+
+  <title>Selené Vesperiine | J.A.C.E. 001</title>
+
   <link rel="stylesheet" href="style.css">
 
-  <!-- Three.js Core & GLTF Loader -->
+  <!-- Visual libraries. These do not provide AI question-answering. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
-  <!-- KaTeX for Math & Physics Formulas -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+  >
 
-  <!-- 3Dmol.js for Molecular Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+
+  <script src="script.js" defer></script>
 </head>
+
 <body>
 
-  <!-- Dynamic Animated Background Canvas -->
-  <canvas id="bubbleCanvas"></canvas>
+  <canvas id="bubbleCanvas" aria-hidden="true"></canvas>
 
   <div class="welcome-wrapper">
-    <!-- Top System Header -->
+
+    <!-- HEADER -->
     <header class="system-header">
-      <div class="system-title">Selené Vesperiine</div>
+
+      <div class="system-title">
+        Selené Vesperiine
+      </div>
+
       <div class="header-actions">
+
+        <label class="sr-only" for="languageSelect">
+          Interface language
+        </label>
+
         <select id="languageSelect">
           <option value="en">English (US)</option>
           <option value="es">Español</option>
@@ -37,83 +51,206 @@
           <option value="de">Deutsch</option>
           <option value="ko">한국어</option>
         </select>
-        <button id="toggleFxPanelBtn" class="fx-btn">⚙️ FX Controls</button>
+
+        <button
+          id="toggleFxPanelBtn"
+          class="fx-btn"
+          type="button"
+          aria-controls="fxPanel"
+          aria-expanded="false"
+        >
+          ⚙️ FX Controls
+        </button>
+
       </div>
     </header>
 
-    <!-- Main Viewport Area -->
+    <!-- MAIN CONTENT -->
     <main class="welcome-container">
-      <!-- Avatar Section -->
-      <div class="avatar-frame">
-        <div class="status-indicator">SYSTEM ONLINE</div>
-        <div class="avatar-viewport" id="avatarViewport"></div>
-      </div>
 
-      <!-- Greeting & Subtitle Section -->
-      <div class="greeting-box">
-        <h1 id="welcomeGreeting">What can I help you with today?</h1>
-        <div class="subtitle-bar">
-          <span class="subtitle-text" id="subtitleOutput">"Hello. I am Selené. Select a specialized module to begin execution."</span>
+      <!-- AVATAR -->
+      <section class="avatar-frame" aria-label="Selené avatar">
+
+        <div class="status-indicator">
+          SYSTEM ONLINE
         </div>
-      </div>
 
-      <!-- 8-Domain Module Grid -->
-      <section class="module-grid">
-        <button class="module-card" data-domain="mathematics">
-          <div class="module-icon">∑</div>
-          <div class="module-name">Mathematics</div>
-        </button>
-        <button class="module-card" data-domain="quantum">
-          <div class="module-icon">⚛</div>
-          <div class="module-name">Quantum Computing</div>
-        </button>
-        <button class="module-card" data-domain="physics">
-          <div class="module-icon">⚡</div>
-          <div class="module-name">Physics</div>
-        </button>
-        <button class="module-card" data-domain="chemistry">
-          <div class="module-icon">🧪</div>
-          <div class="module-name">Chemistry</div>
-        </button>
-        <button class="module-card" data-domain="biology">
-          <div class="module-icon">🧬</div>
-          <div class="module-name">Biology</div>
-        </button>
-        <button class="module-card" data-domain="history">
-          <div class="module-icon">🏛</div>
-          <div class="module-name">History</div>
-        </button>
-        <button class="module-card" data-domain="psychology">
-          <div class="module-icon">🧠</div>
-          <div class="module-name">Psychology</div>
-        </button>
-        <button class="module-card" data-domain="translation">
-          <div class="module-icon">🌐</div>
-          <div class="module-name">Translation</div>
-        </button>
+        <div class="avatar-viewport" id="avatarViewport">
+          <span class="avatar-fallback" id="avatarFallback">
+            3D AVATAR
+          </span>
+        </div>
+
       </section>
+
+      <!-- GREETING -->
+      <section class="greeting-box">
+
+        <h1 id="welcomeGreeting">
+          What can I help you with today?
+        </h1>
+
+        <div class="subtitle-bar" aria-live="polite">
+          <span class="subtitle-text" id="subtitleOutput">
+            "Hello. I am Selené. Select a specialized module to begin."
+          </span>
+        </div>
+
+      </section>
+
+      <!-- SPECIALIZED MODULES -->
+      <section class="module-grid" aria-label="Specialized modules">
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="mathematics"
+        >
+          <span class="module-icon">∑</span>
+          <span class="module-name">Mathematics</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="quantum"
+        >
+          <span class="module-icon">⚛</span>
+          <span class="module-name">Quantum Computing</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="physics"
+        >
+          <span class="module-icon">⚡</span>
+          <span class="module-name">Physics</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="chemistry"
+        >
+          <span class="module-icon">🧪</span>
+          <span class="module-name">Chemistry</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="biology"
+        >
+          <span class="module-icon">🧬</span>
+          <span class="module-name">Biology</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="history"
+        >
+          <span class="module-icon">🏛</span>
+          <span class="module-name">History</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="psychology"
+        >
+          <span class="module-icon">🧠</span>
+          <span class="module-name">Psychology</span>
+        </button>
+
+        <button
+          class="module-card"
+          type="button"
+          data-domain="translation"
+        >
+          <span class="module-icon">🌐</span>
+          <span class="module-name">Translation</span>
+        </button>
+
+      </section>
+
+      <!-- SELECTED MODULE WORKSPACE -->
+      <section
+        id="activeDomainContainer"
+        class="domain-view hidden"
+        aria-label="Selected module workspace"
+      ></section>
+
     </main>
   </div>
 
-  <!-- Effect Controls Drawer -->
-  <aside id="fxPanel" class="fx-panel hidden">
-    <h3>✨ Effect Controls</h3>
-    
-    <label for="bubbleCount">Bubble Density</label>
-    <input type="range" id="bubbleCount" min="10" max="150" value="50">
+  <!-- EFFECT CONTROLS -->
+  <aside
+    id="fxPanel"
+    class="fx-panel hidden"
+    aria-label="Effect controls"
+  >
 
-    <label for="bubbleSpeed">Float Speed</label>
-    <input type="range" id="bubbleSpeed" min="1" max="10" value="3">
+    <h2>✨ Effect Controls</h2>
 
-    <label for="bubbleSize">Max Bubble Size</label>
-    <input type="range" id="bubbleSize" min="5" max="40" value="15">
+    <label for="bubbleCount">
+      Bubble Density
+      <output id="bubbleCountValue">50</output>
+    </label>
 
-    <label for="glowIntensity">Glow Intensity</label>
-    <input type="range" id="glowIntensity" min="0" max="50" value="25">
+    <input
+      type="range"
+      id="bubbleCount"
+      min="10"
+      max="150"
+      value="50"
+    >
 
-    <button id="resetFxBtn">Reset Effects</button>
+    <label for="bubbleSpeed">
+      Float Speed
+      <output id="bubbleSpeedValue">3</output>
+    </label>
+
+    <input
+      type="range"
+      id="bubbleSpeed"
+      min="1"
+      max="10"
+      value="3"
+    >
+
+    <label for="bubbleSize">
+      Max Bubble Size
+      <output id="bubbleSizeValue">15</output>
+    </label>
+
+    <input
+      type="range"
+      id="bubbleSize"
+      min="5"
+      max="40"
+      value="15"
+    >
+
+    <label for="glowIntensity">
+      Glow Intensity
+      <output id="glowIntensityValue">25</output>
+    </label>
+
+    <input
+      type="range"
+      id="glowIntensity"
+      min="0"
+      max="50"
+      value="25"
+    >
+
+    <button id="resetFxBtn" type="button">
+      Reset Effects
+    </button>
+
   </aside>
 
-  <script src="script.js"></script>
 </body>
 </html>
