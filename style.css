@@ -242,3 +242,116 @@ select:hover, button:hover {
   accent-color: var(--theme-purple);
   cursor: pointer;
 }
+/* Sub-Domain Visual Displays */
+.bio-sequence-view, .psych-model-view, .history-timeline-view, .translation-dual-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  color: var(--text-bright);
+}
+
+.dna-strand {
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 3px;
+  color: #b78be9;
+}
+
+.dna-pair {
+  font-family: monospace;
+  color: var(--text-muted);
+}
+
+.timeline-badge {
+  background: rgba(183, 139, 233, 0.15);
+  border: 1px solid var(--border-purple);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--theme-purple);
+}
+
+.psych-model-view {
+  flex-direction: row;
+}
+
+.node-box {
+  background: rgba(12, 10, 20, 0.8);
+  border: 1px solid var(--border-purple);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.node-box.active-node {
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 12px var(--purple-glow);
+  color: var(--theme-purple);
+}
+
+.translation-dual-view {
+  flex-direction: row;
+  gap: 16px;
+  padding: 0 10px;
+}
+
+.lang-box {
+  flex: 1;
+  background: rgba(12, 10, 20, 0.6);
+  border: 1px solid var(--border-purple);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.lang-box.highlight-box {
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 15px var(--purple-glow);
+}
+
+.lang-tag {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+/* Visual Renderer Styling */
+.katex-render-box {
+  font-size: 1.4rem;
+  color: var(--theme-purple);
+  padding: 20px;
+  text-shadow: 0 0 10px var(--purple-glow);
+}
+
+.quantum-circuit-view {
+  font-family: monospace;
+  color: var(--text-bright);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.qubit-line {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: #b78be9;
+}
+
+.circuit-caption {
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.generic-output-card {
+  text-align: center;
+  color: var(--text-bright);
+}
+
+.generic-output-card h4 {
+  color: var(--theme-purple);
+  margin-bottom: 8px;
+}
