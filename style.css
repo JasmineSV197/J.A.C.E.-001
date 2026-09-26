@@ -1,0 +1,236 @@
+/* Project J.A.C.E. 001 - Selené Purple Welcome Screen */
+:root {
+  --font-serif: 'Times New Roman', Times, serif;
+  --bg-deep: #0c0a14;
+  --theme-purple: #b78be9;
+  --purple-glow: rgba(183, 139, 233, 0.4);
+  --panel-bg: rgba(23, 19, 38, 0.75);
+  --border-purple: rgba(183, 139, 233, 0.3);
+  --text-bright: #f5f0ff;
+  --text-muted: #d8c4f8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-serif);
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-bright);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Canvas Background for Floating Bubbles */
+#bubbleCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.welcome-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* System Header */
+.system-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-purple);
+  border-radius: 12px;
+  padding: 16px 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+
+.system-title {
+  font-size: 20px;
+  letter-spacing: 2px;
+  font-weight: bold;
+  color: var(--theme-purple);
+}
+
+.operator-badge span {
+  color: var(--theme-purple);
+  font-weight: bold;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+select, button {
+  font-family: var(--font-serif);
+  background: rgba(12, 10, 20, 0.8);
+  color: var(--text-bright);
+  border: 1px solid var(--border-purple);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+select:hover, button:hover {
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+/* Main Welcome Container */
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  margin-top: 20px;
+  gap: 24px;
+}
+
+.avatar-frame {
+  position: relative;
+}
+
+.avatar-viewport {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 3px solid var(--theme-purple);
+  box-shadow: 0 0 35px var(--purple-glow);
+  background: radial-gradient(circle, rgba(183,139,233,0.2) 0%, rgba(12,10,20,1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-indicator {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(183, 139, 233, 0.15);
+  border: 1px solid var(--theme-purple);
+  color: var(--theme-purple);
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+/* Greeting & Subtitles */
+.greeting-box {
+  text-align: center;
+}
+
+.greeting-box h1 {
+  font-size: 32px;
+  font-weight: normal;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.subtitle-bar {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-purple);
+  padding: 10px 24px;
+  border-radius: 20px;
+  display: inline-block;
+  backdrop-filter: blur(8px);
+}
+
+.subtitle-text {
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+/* Module Grid */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.module-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-purple);
+  padding: 20px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  backdrop-filter: blur(10px);
+  text-align: left;
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+
+.module-icon {
+  font-size: 24px;
+  color: var(--theme-purple);
+}
+
+.module-name {
+  font-size: 18px;
+}
+
+/* Customizable FX Panel */
+.fx-panel {
+  position: fixed;
+  right: 24px;
+  top: 90px;
+  width: 260px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-purple);
+  border-radius: 14px;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.fx-panel.hidden {
+  display: none;
+}
+
+.fx-panel h3 {
+  color: var(--theme-purple);
+  margin-bottom: 4px;
+}
+
+.fx-panel label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.fx-panel input[type="range"] {
+  accent-color: var(--theme-purple);
+  cursor: pointer;
+}
