@@ -1,29 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- KaTeX for Math & Science Formula Rendering -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <!-- 3D Viewport Support -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
-<!-- KaTeX for Math & Science Formula Rendering -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-
-<!-- 3Dmol.js for Chemistry & Biology Molecular Display -->
-<script src="https://3dmol.org/build/3Dmol-min.js"></script>
-
-<!-- 3Dmol.js for Chemistry & Biology Molecular Display -->
-<script src="https://3dmol.org/build/3Dmol-min.js"></script>
-  <!-- Three.js Core & GLTF Loader -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Selené Vesperiine</title>
+  
+  <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js Core & GLTF Loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+  <!-- KaTeX for Math & Physics Formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- 3Dmol.js for Molecular Rendering -->
+  <script src="https://3dmol.org/build/3Dmol-min.js"></script>
 </head>
 <body>
 
@@ -41,7 +35,7 @@
           <option value="ja">日本語</option>
           <option value="fr">Français</option>
           <option value="de">Deutsch</option>
-          <option value="de">한국어</option>
+          <option value="ko">한국어</option>
         </select>
         <button id="toggleFxPanelBtn" class="fx-btn">⚙️ FX Controls</button>
       </div>
@@ -52,10 +46,7 @@
       <!-- Avatar Section -->
       <div class="avatar-frame">
         <div class="status-indicator">SYSTEM ONLINE</div>
-        <div class="avatar-viewport" id="avatarViewport">
-          <!-- Placeholder image matching Selené's visual geometry -->
-          <div class="avatar-placeholder"></div>
-        </div>
+        <div class="avatar-viewport" id="avatarViewport"></div>
       </div>
 
       <!-- Greeting & Subtitle Section -->
@@ -66,44 +57,45 @@
         </div>
       </div>
 
-   <section class="module-grid">
-  <button class="module-card" data-domain="mathematics">
-    <div class="module-icon">∑</div>
-    <div class="module-name">Mathematics</div>
-  </button>
-  <button class="module-card" data-domain="quantum">
-    <div class="module-icon">⚛</div>
-    <div class="module-name">Quantum Computing</div>
-  </button>
-  <button class="module-card" data-domain="physics">
-    <div class="module-icon">⚡</div>
-    <div class="module-name">Physics</div>
-  </button>
-  <button class="module-card" data-domain="chemistry">
-    <div class="module-icon">🧪</div>
-    <div class="module-name">Chemistry</div>
-  </button>
-  <button class="module-card" data-domain="biology">
-    <div class="module-icon">🧬</div>
-    <div class="module-name">Biology</div>
-  </button>
-  <button class="module-card" data-domain="history">
-    <div class="module-icon">🏛</div>
-    <div class="module-name">History</div>
-  </button>
-  <button class="module-card" data-domain="psychology">
-    <div class="module-icon">🧠</div>
-    <div class="module-name">Psychology</div>
-  </button>
-  <button class="module-card" data-domain="translation">
-    <div class="module-icon">🌐</div>
-    <div class="module-name">Translation</div>
-  </button>
-</section>
+      <!-- 8-Domain Module Grid -->
+      <section class="module-grid">
+        <button class="module-card" data-domain="mathematics">
+          <div class="module-icon">∑</div>
+          <div class="module-name">Mathematics</div>
+        </button>
+        <button class="module-card" data-domain="quantum">
+          <div class="module-icon">⚛</div>
+          <div class="module-name">Quantum Computing</div>
+        </button>
+        <button class="module-card" data-domain="physics">
+          <div class="module-icon">⚡</div>
+          <div class="module-name">Physics</div>
+        </button>
+        <button class="module-card" data-domain="chemistry">
+          <div class="module-icon">🧪</div>
+          <div class="module-name">Chemistry</div>
+        </button>
+        <button class="module-card" data-domain="biology">
+          <div class="module-icon">🧬</div>
+          <div class="module-name">Biology</div>
+        </button>
+        <button class="module-card" data-domain="history">
+          <div class="module-icon">🏛</div>
+          <div class="module-name">History</div>
+        </button>
+        <button class="module-card" data-domain="psychology">
+          <div class="module-icon">🧠</div>
+          <div class="module-name">Psychology</div>
+        </button>
+        <button class="module-card" data-domain="translation">
+          <div class="module-icon">🌐</div>
+          <div class="module-name">Translation</div>
+        </button>
+      </section>
     </main>
   </div>
 
-  <!-- Customizable Background Effects Drawer -->
+  <!-- Effect Controls Drawer -->
   <aside id="fxPanel" class="fx-panel hidden">
     <h3>✨ Effect Controls</h3>
     
