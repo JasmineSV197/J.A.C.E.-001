@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT: J.A.C.E. 001 — Selené Vesperiine</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Dynamic Animated Background Canvas -->
+  <canvas id="bubbleCanvas"></canvas>
+
+  <div class="welcome-wrapper">
+    <!-- Top System Header -->
+    <header class="system-header">
+      <div class="system-title">PROJECT: J.A.C.E. 001</div>
+      <div class="operator-badge">Operator: <span>Selené Vesperiine</span></div>
+      <div class="header-actions">
+        <select id="languageSelect">
+          <option value="en">English (US)</option>
+          <option value="es">Español</option>
+          <option value="ja">日本語</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <button id="toggleFxPanelBtn" class="fx-btn">⚙️ FX Controls</button>
+      </div>
+    </header>
+
+    <!-- Main Viewport Area -->
+    <main class="welcome-container">
+      <!-- Avatar Section -->
+      <div class="avatar-frame">
+        <div class="status-indicator">SYSTEM ONLINE</div>
+        <div class="avatar-viewport" id="avatarViewport">
+          <!-- Placeholder image matching Selené's visual geometry -->
+          <div class="avatar-placeholder"></div>
+        </div>
+      </div>
+
+      <!-- Greeting & Subtitle Section -->
+      <div class="greeting-box">
+        <h1 id="welcomeGreeting">What can I help you with today?</h1>
+        <div class="subtitle-bar">
+          <span class="subtitle-text" id="subtitleOutput">"Hello. I am Selené. Select a specialized module to begin execution."</span>
+        </div>
+      </div>
+
+      <!-- Specialized Module Quick-Launch Cards -->
+      <section class="module-grid">
+        <button class="module-card" data-domain="mathematics">
+          <div class="module-icon">∑</div>
+          <div class="module-name">Mathematics</div>
+        </button>
+        <button class="module-card" data-domain="quantum">
+          <div class="module-icon">⚛</div>
+          <div class="module-name">Quantum Computing</div>
+        </button>
+        <button class="module-card" data-domain="physics">
+          <div class="module-icon">⚡</div>
+          <div class="module-name">Physics / Chemistry</div>
+        </button>
+        <button class="module-card" data-domain="biology">
+          <div class="module-icon">🧬</div>
+          <div class="module-name">Biology</div>
+        </button>
+        <button class="module-card" data-domain="history">
+          <div class="module-icon">🏛</div>
+          <div class="module-name">History / Psychology</div>
+        </button>
+        <button class="module-card" data-domain="translation">
+          <div class="module-icon">🌐</div>
+          <div class="module-name">Translation</div>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <!-- Customizable Background Effects Drawer -->
+  <aside id="fxPanel" class="fx-panel hidden">
+    <h3>✨ Effect Controls</h3>
+    
+    <label for="bubbleCount">Bubble Density</label>
+    <input type="range" id="bubbleCount" min="10" max="150" value="50">
+
+    <label for="bubbleSpeed">Float Speed</label>
+    <input type="range" id="bubbleSpeed" min="1" max="10" value="3">
+
+    <label for="bubbleSize">Max Bubble Size</label>
+    <input type="range" id="bubbleSize" min="5" max="40" value="15">
+
+    <label for="glowIntensity">Glow Intensity</label>
+    <input type="range" id="glowIntensity" min="0" max="50" value="25">
+
+    <button id="resetFxBtn">Reset Effects</button>
+  </aside>
+
+  <script src="script.js"></script>
+</body>
+</html>
