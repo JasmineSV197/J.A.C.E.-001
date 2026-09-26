@@ -359,3 +359,204 @@ function triggerSeleneSpeech(text) {
 window.addEventListener("DOMContentLoaded", () => {
   initAvatarViewport();
 });
+// ==========================================
+// 5. DOMAIN VISUAL MEDIA RENDER ENGINE
+// ==========================================
+function executeDomainVisuals(domainKey, userInput) {
+  const displayPanel = document.getElementById("visualDisplayPanel");
+  if (!displayPanel) return;
+
+  displayPanel.innerHTML = ""; // Clear existing visual placeholder
+
+  switch (domainKey) {
+    case "mathematics":
+    case "physics":
+      // Render dynamic LaTeX equations
+      const latexContainer = document.createElement("div");
+      latexContainer.className = "katex-render-box";
+      displayPanel.appendChild(latexContainer);
+
+      // Example LaTeX formula output (e.g., Schrödinger or Calculus)
+      const formula = userInput.includes("quantum") 
+        ? "i\\hbar\\frac{\\partial}{\\partial t}\\Psi(\\mathbf{r},t) = \\hat{H}\\Psi(\\mathbf{r},t)"
+        : "f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi)\\,e^{2\\pi i x \\xi}\\,d\\xi";
+
+      katex.render(formula, latexContainer, { displayMode: true, throwOnError: false });
+      triggerSeleneSpeech(`"LaTeX proof rendered for ${domainKey.toUpperCase()} workspace."`);
+      break;
+
+    case "chemistry":
+    case "biology":
+      // Render interactive 3D Molecule using 3Dmol.js
+      const molViewer = document.createElement("div");
+      molViewer.id = "3dmolViewer";
+      molViewer.style.width = "100%";
+      molViewer.style.height = "100%";
+      molViewer.style.position = "relative";
+      displayPanel.appendChild(molViewer);
+
+      // Initialize 3Dmol Viewer (e.g., Caffeine molecule structure)
+      let viewer = $3Dmol.createViewer("3dmolViewer", { backgroundColor: "0x0c0a14" });
+      $3Dmol.download("pdb:1AINS", viewer, { multimodel: true, frames: true }, function () {
+        viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+        viewer.zoomTo();
+        viewer.render();
+        viewer.animate({ loop: "backAndForth" });
+      });
+
+      triggerSeleneSpeech(`"3D macromolecular structure loaded into ${domainKey.toUpperCase()} viewer."`);
+      break;
+
+    case "quantum":
+      // Render Quantum Circuit State Diagram
+      displayPanel.innerHTML = `
+        <div class="quantum-circuit-view">
+          <div class="qubit-line"><span>|q₀⟩</span> ───[ H ]───■───[ M ]</div>
+          <div class="qubit-line"><span>|q₁⟩</span> ─────────┼───[ M ]</div>
+          <small class="circuit-caption">Bell State Generator | ⟨Ψ⁺⟩ = (|00⟩ + |11⟩) / √2</small>
+        </div>
+      `;
+      triggerSeleneSpeech('"Quantum logic gate state verified."');
+      break;
+
+    default:
+      // General Analytical Output Box
+      displayPanel.innerHTML = `
+        <div class="generic-output-card">
+          <h4>${domainKey.toUpperCase()} ANALYSIS COMPLETE</h4>
+          <p>"${userInput}" processed under Selené Vesperiine system parameters.</p>
+        </div>
+      `;
+      triggerSeleneSpeech(`"Output generated for ${domainKey.toUpperCase()} request."`);
+      break;
+  }
+}
+case "biology":
+      // Interactive DNA / Bioinformatics Viewer
+      displayPanel.innerHTML = `
+        <div class="bio-sequence-view">
+          <div class="dna-strand">5'- A T G C C G T A T G C A T -3'</div>
+          <div class="dna-pair">   | | | | | | | | | | | | |</div>
+          <div class="dna-strand">3'- T A C G G C A T A C G T A -5'</div>
+          <small class="bio-caption">Codon Sequence | Translation: Met - Pro - Tyr - Ala</small>
+        </div>
+      `;
+      triggerSeleneSpeech('"Bioinformatics sequence mapped for BIOLOGY module."');
+      break;
+
+    case "history":
+      // Historical Chronology & Primary Source Card
+      displayPanel.innerHTML = `
+        <div class="history-timeline-view">
+          <div class="timeline-badge">ERA: CLASSICAL ANTIQUITY</div>
+          <div class="source-card">
+            <p><i>"Primary source record loaded into archival matrix."</i></p>
+            <small>Contextual Cross-Reference: ACTIVE</small>
+          </div>
+        </div>
+      `;
+      triggerSeleneSpeech('"Archival timeline index updated for HISTORY matrix."');
+      break;
+
+    case "psychology":
+      // Cognitive Architecture Model
+      displayPanel.innerHTML = `
+        <div class="psych-model-view">
+          <div class="node-box">Stimulus</div>
+          <span class="arrow">→</span>
+          <div class="node-box active-node">Cognitive Appraisal</div>
+          <span class="arrow">→</span>
+          <div class="node-box">Behavioral Response</div>
+        </div>
+      `;
+      triggerSeleneSpeech('"Cognitive framework mapped for PSYCHOLOGY engine."');
+      break;
+
+    case "translation":
+      // Real-time Parallel Language Cards
+      displayPanel.innerHTML = `
+        <div class="translation-dual-view">
+          <div class="lang-box">
+            <span class="lang-tag">INPUT [ENGLISH]</span>
+            <p>"${userInput}"</p>
+          </div>
+          <div class="lang-box highlight-box">
+            <span class="lang-tag">TARGET [LATIN]</span>
+            <p><i>"Verba volant, scripta manent."</i></p>
+          </div>
+        </div>
+      `;
+      triggerSeleneSpeech('"Multilingual conversion active for TRANSLATION module."');
+      break;
+// ==========================================
+// 5. DOMAIN VISUAL MEDIA RENDER ENGINE
+// ==========================================
+function executeDomainVisuals(domainKey, userInput) {
+  const displayPanel = document.getElementById("visualDisplayPanel");
+  if (!displayPanel) return;
+
+  displayPanel.innerHTML = ""; // Clear existing visual placeholder
+
+  switch (domainKey) {
+    case "mathematics":
+    case "physics":
+      // Render dynamic LaTeX equations
+      const latexContainer = document.createElement("div");
+      latexContainer.className = "katex-render-box";
+      displayPanel.appendChild(latexContainer);
+
+      // Example LaTeX formula output (e.g., Schrödinger or Calculus)
+      const formula = userInput.includes("quantum") 
+        ? "i\\hbar\\frac{\\partial}{\\partial t}\\Psi(\\mathbf{r},t) = \\hat{H}\\Psi(\\mathbf{r},t)"
+        : "f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi)\\,e^{2\\pi i x \\xi}\\,d\\xi";
+
+      katex.render(formula, latexContainer, { displayMode: true, throwOnError: false });
+      triggerSeleneSpeech(`"LaTeX proof rendered for ${domainKey.toUpperCase()} workspace."`);
+      break;
+
+    case "chemistry":
+    case "biology":
+      // Render interactive 3D Molecule using 3Dmol.js
+      const molViewer = document.createElement("div");
+      molViewer.id = "3dmolViewer";
+      molViewer.style.width = "100%";
+      molViewer.style.height = "100%";
+      molViewer.style.position = "relative";
+      displayPanel.appendChild(molViewer);
+
+      // Initialize 3Dmol Viewer (e.g., Caffeine molecule structure)
+      let viewer = $3Dmol.createViewer("3dmolViewer", { backgroundColor: "0x0c0a14" });
+      $3Dmol.download("pdb:1AINS", viewer, { multimodel: true, frames: true }, function () {
+        viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+        viewer.zoomTo();
+        viewer.render();
+        viewer.animate({ loop: "backAndForth" });
+      });
+
+      triggerSeleneSpeech(`"3D macromolecular structure loaded into ${domainKey.toUpperCase()} viewer."`);
+      break;
+
+    case "quantum":
+      // Render Quantum Circuit State Diagram
+      displayPanel.innerHTML = `
+        <div class="quantum-circuit-view">
+          <div class="qubit-line"><span>|q₀⟩</span> ───[ H ]───■───[ M ]</div>
+          <div class="qubit-line"><span>|q₁⟩</span> ─────────┼───[ M ]</div>
+          <small class="circuit-caption">Bell State Generator | ⟨Ψ⁺⟩ = (|00⟩ + |11⟩) / √2</small>
+        </div>
+      `;
+      triggerSeleneSpeech('"Quantum logic gate state verified."');
+      break;
+
+    default:
+      // General Analytical Output Box
+      displayPanel.innerHTML = `
+        <div class="generic-output-card">
+          <h4>${domainKey.toUpperCase()} ANALYSIS COMPLETE</h4>
+          <p>"${userInput}" processed under Selené Vesperiine system parameters.</p>
+        </div>
+      `;
+      triggerSeleneSpeech(`"Output generated for ${domainKey.toUpperCase()} request."`);
+      break;
+  }
+}
