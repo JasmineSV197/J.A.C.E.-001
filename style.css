@@ -163,12 +163,20 @@ select:hover, button:hover {
 }
 
 /* Module Grid */
+/* Module Grid - 8 Card Layout */
 .module-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* 4 columns x 2 rows on desktop */
   gap: 16px;
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
+}
+
+/* Responsive adjustment for mobile screens */
+@media (max-width: 768px) {
+  .module-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on phones/tablets */
+  }
 }
 
 .module-card {
