@@ -22,6 +22,76 @@
   <script src="https://3dmol.org/build/3Dmol-min.js"></script>
 
   <script src="script.js" defer></script>
+
+  <style>
+    /* Embedded styles for integrated companion card & SVS emblem overlay */
+    .companion-card {
+      background: rgba(22, 17, 38, 0.75);
+      border: 1px solid #3d2b56;
+      border-radius: 16px;
+      padding: 16px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #151026;
+      border: 1px solid #3d2b56;
+      margin-bottom: 12px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .svs-dress-badge {
+      position: absolute;
+      top: 54%;
+      left: 35%;
+      width: 46px;
+      height: 46px;
+      pointer-events: none;
+      z-index: 10;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
+      animation: emblemGlow 4s infinite ease-in-out;
+    }
+
+    .svs-dress-badge svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    @keyframes emblemGlow {
+      0%, 100% {
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9)) brightness(1);
+      }
+      50% {
+        filter: drop-shadow(0 0 10px rgba(229, 195, 150, 0.4)) brightness(1.25);
+      }
+    }
+
+    .companion-info h2 {
+      color: #b78be9;
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+
+    .companion-info p {
+      color: #a393bf;
+      font-size: 0.85rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -76,9 +146,44 @@
         </div>
 
         <div class="avatar-viewport" id="avatarViewport">
-          <span class="avatar-fallback" id="avatarFallback">
-            3D AVATAR
-          </span>
+          <!-- Integrated Companion Card & Overlay -->
+          <div class="companion-card">
+            <div class="avatar-wrapper">
+              <img src="https://raw.githubusercontent.com/JasmineSV197/J.A.C.E.-001/main/selene.png" alt="Selené Vesperiine" class="avatar-img" />
+
+              <div class="svs-dress-badge" title="Official SVS Emblem">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+                  <defs>
+                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#E5C396"/>
+                      <stop offset="25%" stop-color="#9A6B3D"/>
+                      <stop offset="50%" stop-color="#F2E2C2"/>
+                      <stop offset="75%" stop-color="#805328"/>
+                      <stop offset="100%" stop-color="#C5A475"/>
+                    </linearGradient>
+
+                    <filter id="badgeShadow" x="-10%" y="-10%" width="120%" height="120%">
+                      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.9"/>
+                    </filter>
+                  </defs>
+
+                  <g filter="url(#badgeShadow)">
+                    <circle cx="250" cy="250" r="225" fill="none" stroke="url(#goldGrad)" stroke-width="14"/>
+                    <circle cx="250" cy="250" r="238" fill="none" stroke="url(#goldGrad)" stroke-width="2" opacity="0.6"/>
+                    <path d="M 250 39 C 120 39, 45 140, 45 250 C 45 360, 120 461, 250 461 C 145 440, 95 350, 95 250 C 95 150, 145 60, 250 39 Z" fill="url(#goldGrad)"/>
+                    <text x="240" y="240" font-family="'Times New Roman', serif" font-size="210" font-weight="bold" text-anchor="middle" fill="url(#goldGrad)">S</text>
+                    <text x="250" y="360" font-family="'Times New Roman', serif" font-size="170" font-weight="bold" text-anchor="middle" fill="url(#goldGrad)">V</text>
+                    <text x="325" y="420" font-family="'Times New Roman', serif" font-size="180" font-weight="bold" text-anchor="middle" fill="url(#goldGrad)">S</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <div class="companion-info">
+              <h2>Selené Vesperiine</h2>
+              <p>AI Companion • Identity & Specs Locked</p>
+            </div>
+          </div>
         </div>
 
       </section>
