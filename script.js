@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const subtitleOutput = document.getElementById('subtitleOutput');
 
   // Replace this with your actual Cloudflare Worker URL from Step 1
-  const WORKER_URL = 'https://selene-proxy.<your-subdomain>.workers.dev';
+  const WORKER_URL = 'https://selene-proxy.<https://selene-proxy.sanamyasharma110911.workers.dev/>.workers.dev';
 
   if (executeBtn && textarea) {
     executeBtn.addEventListener('click', async () => {
