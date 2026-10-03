@@ -902,3 +902,24 @@ button:hover {
     filter: drop-shadow(0 0 8px rgba(229, 195, 150, 0.5)) brightness(1.25);
   }
 }
+#avatarViewport {
+  position: relative !important;
+  width: 150px !important; /* adjust to match your circular frame size */
+  height: 150px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  display: block !important;
+}
+
+.avatar-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.avatar-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
