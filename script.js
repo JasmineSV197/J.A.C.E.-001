@@ -771,3 +771,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const executeBtn = document.querySelector('.execute-btn');
+  const textarea = document.querySelector('.input-console textarea');
+
+  if (executeBtn && textarea) {
+    executeBtn.addEventListener('click', () => {
+      const userQuery = textarea.value.trim();
+      
+      if (!userQuery) {
+        alert('Please enter a query or command first.');
+        return;
+      }
+
+      console.log('Executing command:', userQuery);
+      
+      // Clear input after execution
+      textarea.value = '';
+    });
+  }
+});
