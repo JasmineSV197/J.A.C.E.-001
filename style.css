@@ -644,3 +644,217 @@ button:hover {
     transition-duration: 0.01ms !important;
   }
 }
+/* ==========================================
+   INPUT CONSOLE & BUTTONS
+   ========================================== */
+
+.input-console {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.input-console textarea {
+  flex: 1;
+  min-height: 60px;
+  max-height: 180px;
+  background: rgba(12, 10, 20, 0.8);
+  border: 1px solid var(--border-purple);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text-bright);
+  font-family: var(--font-serif);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-console textarea:focus {
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+.execute-btn {
+  background: var(--theme-purple);
+  color: var(--bg-deep);
+  font-weight: bold;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.execute-btn:hover {
+  background: #c9a3f2;
+  box-shadow: 0 0 15px var(--purple-glow);
+}
+
+.demo-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ==========================================
+   DOMAIN-SPECIFIC VISUAL COMPONENTS
+   ========================================== */
+
+.katex-render-box {
+  padding: 16px;
+  font-size: 1.3rem;
+  color: var(--text-bright);
+  text-align: center;
+}
+
+.generic-output-card {
+  padding: 16px;
+  text-align: center;
+}
+
+.generic-output-card h3 {
+  color: var(--theme-purple);
+  margin-bottom: 8px;
+}
+
+.bio-sequence-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  color: var(--theme-purple);
+}
+
+.dna-strand {
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.dna-pair {
+  color: var(--text-muted);
+}
+
+.history-timeline-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeline-badge {
+  background: var(--border-purple);
+  color: var(--text-bright);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.psych-model-view {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.node-box {
+  padding: 8px 16px;
+  border: 1px solid var(--border-purple);
+  border-radius: 6px;
+  background: rgba(183, 139, 233, 0.1);
+}
+
+.node-box.active-node {
+  border-color: var(--theme-purple);
+  color: var(--theme-purple);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+.translation-dual-view {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  padding: 12px;
+}
+
+.lang-box {
+  flex: 1;
+  padding: 12px;
+  background: rgba(23, 19, 38, 0.5);
+  border: 1px solid var(--border-purple);
+  border-radius: 8px;
+}
+
+.lang-box.highlight-box {
+  border-color: var(--theme-purple);
+}
+
+.lang-tag {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--theme-purple);
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.quantum-circuit-view {
+  font-family: monospace;
+  color: var(--theme-purple);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.qubit-line {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.circuit-caption {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 768px) {
+  .module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .system-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .input-console {
+    flex-direction: column;
+  }
+
+  .execute-btn {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .module-grid {
+    grid-template-columns: 1fr;
+  }
+}
