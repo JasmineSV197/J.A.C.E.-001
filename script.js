@@ -851,3 +851,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const executeBtn = document.querySelector('.execute-btn');
+  const textarea = document.querySelector('.input-console textarea');
+  const subtitleOutput = document.getElementById('subtitleOutput');
+
+  // Replace this with your actual Cloudflare Worker URL from Step 1
+  const WORKER_URL = 'https://selene-proxy.<your-subdomain>.workers.dev';
+
+  if (executeBtn && textarea) {
+    executeBtn.addEventListener('click', async () => {
+      const userQuery = textarea.value.trim();
+      if (!userQuery) return;
+
+      if (subtitleOutput) {
+        subtitleOutput.textContent = '"Processing query..."';
+      }
+
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: userQuery })
+        });
+
+        const data = await res.json();
+        const reply = data.response || "System connection error.";
+
+        // Render AI response in subtitle bar
+        if (subtitleOutput) {
+          subtitleOutput.textContent = `"${reply}"`;
+        }
+
+        // Voice output
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(reply);
+          utterance.pitch = 1.1;
+          utterance.rate = 0.95;
+          window.speechSynthesis.speak(utterance);
+        }
+
+      } catch (err) {
+        console.error(err);
+        if (subtitleOutput) {
+          subtitleOutput.textContent = '"Core system offline."';
+        }
+      }
+
+      textarea.value = '';
+    });
+  }
+});
