@@ -791,4 +791,63 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-// If script.js has something like this, it wipes out your HTML image:
+document.addEventListener('DOMContentLoaded', () => {
+  const executeBtn = document.querySelector('.execute-btn');
+  const textarea = document.querySelector('.input-console textarea');
+  const subtitleOutput = document.getElementById('subtitleOutput');
+
+  // Insert your Gemini API key here for direct web testing
+  const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+
+  if (executeBtn && textarea) {
+    executeBtn.addEventListener('click', async () => {
+      const userQuery = textarea.value.trim();
+      if (!userQuery) return;
+
+      if (subtitleOutput) {
+        subtitleOutput.textContent = '"Processing query..."';
+      }
+
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `You are Selené Vesperiine, an AI companion in the J.A.C.E. 001 interface. Keep your response brief and in-character. User says: ${userQuery}`
+                }]
+              }]
+            })
+          }
+        );
+
+        const data = await response.json();
+        const aiReply = data.candidates[0].content.parts[0].text;
+
+        // Display response in the subtitle bar
+        if (subtitleOutput) {
+          subtitleOutput.textContent = `"${aiReply}"`;
+        }
+
+        // Voice output
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(aiReply);
+          utterance.pitch = 1.1;
+          utterance.rate = 0.95;
+          window.speechSynthesis.speak(utterance);
+        }
+
+      } catch (err) {
+        console.error(err);
+        if (subtitleOutput) {
+          subtitleOutput.textContent = '"Core module connection failed."';
+        }
+      }
+
+      textarea.value = '';
+    });
+  }
+});
