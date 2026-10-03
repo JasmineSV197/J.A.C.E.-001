@@ -9,22 +9,17 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Visual libraries. These do not provide AI question-answering. -->
+  <!-- Visual libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
-  >
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script src="https://3dmol.org/build/3Dmol-min.js"></script>
 
   <script src="script.js" defer></script>
 
   <style>
-    /* Embedded styles for integrated companion card & SVS emblem overlay */
     .companion-card {
       background: rgba(22, 17, 38, 0.75);
       border: 1px solid #3d2b56;
@@ -55,41 +50,43 @@
       object-fit: cover;
     }
 
-    .svs-dress-badge {
-      position: absolute;
-      top: 54%;
-      left: 35%;
-      width: 46px;
-      height: 46px;
-      pointer-events: none;
-      z-index: 10;
-      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
-      animation: emblemGlow 4s infinite ease-in-out;
+    .input-console-container {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+      align-items: center;
+      justify-content: center;
     }
 
-    .svs-dress-badge svg {
+    .input-console {
+      flex: 1;
+      max-width: 500px;
+    }
+
+    .input-console textarea {
       width: 100%;
-      height: 100%;
+      background: rgba(21, 16, 38, 0.8);
+      border: 1px solid #3d2b56;
+      border-radius: 8px;
+      color: #e2d9f3;
+      padding: 10px;
+      font-family: inherit;
+      resize: vertical;
     }
 
-    @keyframes emblemGlow {
-      0%, 100% {
-        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9)) brightness(1);
-      }
-      50% {
-        filter: drop-shadow(0 0 10px rgba(229, 195, 150, 0.4)) brightness(1.25);
-      }
+    .execute-btn {
+      background: #6b3ba7;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s ease;
     }
 
-    .companion-info h2 {
-      color: #b78be9;
-      font-size: 1.3rem;
-      margin-bottom: 4px;
-    }
-
-    .companion-info p {
-      color: #a393bf;
-      font-size: 0.85rem;
+    .execute-btn:hover {
+      background: #854cd3;
     }
   </style>
 </head>
@@ -102,13 +99,11 @@
 
     <!-- HEADER -->
     <header class="system-header">
-
       <div class="system-title">
         Selené Vesperiine
       </div>
 
       <div class="header-actions">
-
         <label class="sr-only" for="languageSelect">
           Interface language
         </label>
@@ -131,7 +126,6 @@
         >
           ⚙️ FX Controls
         </button>
-
       </div>
     </header>
 
@@ -139,9 +133,7 @@
     <main class="welcome-container">
 
       <!-- AVATAR -->
-      <!-- AVATAR -->
       <section class="avatar-frame" aria-label="Selené avatar">
-
         <div class="status-indicator">
           SYSTEM ONLINE
         </div>
@@ -149,102 +141,72 @@
         <div class="avatar-viewport" id="avatarViewport">
           <div class="avatar-wrapper">
             <img src="https://raw.githubusercontent.com/JasmineSV197/J.A.C.E.-001/main/selene.png" alt="Selené Vesperiine" class="avatar-img" />
-
           </div>
         </div>
-
       </section>
 
       <!-- GREETING -->
       <section class="greeting-box">
-
         <h1 id="welcomeGreeting">
           What can I help you with today?
         </h1>
 
         <div class="subtitle-bar" aria-live="polite">
           <span class="subtitle-text" id="subtitleOutput">
-            "Hello. I am Selené. Select a specialized module to begin."
+            "Hello. I am Selené. Select a specialized module or enter a prompt below."
           </span>
         </div>
+      </section>
 
+      <!-- INPUT CONSOLE -->
+      <section class="input-console-container">
+        <div class="input-console">
+          <textarea placeholder="Type your prompt for Selené..." rows="2" aria-label="Prompt input"></textarea>
+        </div>
+        <button type="button" class="execute-btn">Execute</button>
       </section>
 
       <!-- SPECIALIZED MODULES -->
       <section class="module-grid" aria-label="Specialized modules">
-
-        <button
-          class="module-card"
-          type="button"
-          data-domain="mathematics"
-        >
+        <button class="module-card" type="button" data-domain="mathematics">
           <span class="module-icon">∑</span>
           <span class="module-name">Mathematics</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="quantum"
-        >
+        <button class="module-card" type="button" data-domain="quantum">
           <span class="module-icon">⚛</span>
           <span class="module-name">Quantum Computing</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="physics"
-        >
+        <button class="module-card" type="button" data-domain="physics">
           <span class="module-icon">⚡</span>
           <span class="module-name">Physics</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="chemistry"
-        >
+        <button class="module-card" type="button" data-domain="chemistry">
           <span class="module-icon">🧪</span>
           <span class="module-name">Chemistry</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="biology"
-        >
+        <button class="module-card" type="button" data-domain="biology">
           <span class="module-icon">🧬</span>
           <span class="module-name">Biology</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="history"
-        >
+        <button class="module-card" type="button" data-domain="history">
           <span class="module-icon">🏛</span>
           <span class="module-name">History</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="psychology"
-        >
+        <button class="module-card" type="button" data-domain="psychology">
           <span class="module-icon">🧠</span>
           <span class="module-name">Psychology</span>
         </button>
 
-        <button
-          class="module-card"
-          type="button"
-          data-domain="translation"
-        >
+        <button class="module-card" type="button" data-domain="translation">
           <span class="module-icon">🌐</span>
           <span class="module-name">Translation</span>
         </button>
-
       </section>
 
       <!-- SELECTED MODULE WORKSPACE -->
@@ -263,65 +225,35 @@
     class="fx-panel hidden"
     aria-label="Effect controls"
   >
-
     <h2>✨ Effect Controls</h2>
 
     <label for="bubbleCount">
       Bubble Density
       <output id="bubbleCountValue">50</output>
     </label>
-
-    <input
-      type="range"
-      id="bubbleCount"
-      min="10"
-      max="150"
-      value="50"
-    >
+    <input type="range" id="bubbleCount" min="10" max="150" value="50">
 
     <label for="bubbleSpeed">
       Float Speed
       <output id="bubbleSpeedValue">3</output>
     </label>
-
-    <input
-      type="range"
-      id="bubbleSpeed"
-      min="1"
-      max="10"
-      value="3"
-    >
+    <input type="range" id="bubbleSpeed" min="1" max="10" value="3">
 
     <label for="bubbleSize">
       Max Bubble Size
       <output id="bubbleSizeValue">15</output>
     </label>
-
-    <input
-      type="range"
-      id="bubbleSize"
-      min="5"
-      max="40"
-      value="15"
-    >
+    <input type="range" id="bubbleSize" min="5" max="40" value="15">
 
     <label for="glowIntensity">
       Glow Intensity
       <output id="glowIntensityValue">25</output>
     </label>
-
-    <input
-      type="range"
-      id="glowIntensity"
-      min="0"
-      max="50"
-      value="25"
-    >
+    <input type="range" id="glowIntensity" min="0" max="50" value="25">
 
     <button id="resetFxBtn" type="button">
       Reset Effects
     </button>
-
   </aside>
 
 </body>
