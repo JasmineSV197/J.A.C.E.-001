@@ -792,6 +792,3 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 // If script.js has something like this, it wipes out your HTML image:
-document.getElementById('avatarViewport').innerHTML = ''; 
-// or
-avatarViewport.appendChild(renderer.domElement);
