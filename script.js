@@ -902,3 +902,245 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+/* =========================================================
+   SELENÉ VESPERIINE — 3D AVATAR
+   ========================================================= */
+
+const seleneContainer = document.getElementById("selene3D");
+
+if (seleneContainer && window.THREE) {
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(
+    35,
+    seleneContainer.clientWidth / seleneContainer.clientHeight,
+    0.1,
+    100
+  );
+
+  camera.position.set(0, 1.35, 3.2);
+
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true
+  });
+
+  renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio, 2)
+  );
+
+  renderer.setSize(
+    seleneContainer.clientWidth,
+    seleneContainer.clientHeight
+  );
+
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  seleneContainer.appendChild(renderer.domElement);
+
+
+  /* LIGHTING */
+
+  const ambientLight = new THREE.AmbientLight(
+    0xffffff,
+    1.5
+  );
+
+  scene.add(ambientLight);
+
+
+  const keyLight = new THREE.DirectionalLight(
+    0xffffff,
+    2
+  );
+
+  keyLight.position.set(2, 3, 4);
+
+  scene.add(keyLight);
+
+
+  const purpleLight = new THREE.PointLight(
+    0xb77cff,
+    2,
+    8
+  );
+
+  purpleLight.position.set(-2, 2, 2);
+
+  scene.add(purpleLight);
+
+
+  /* LOAD SELENÉ */
+
+  const loader = new THREE.GLTFLoader();
+
+  loader.load(
+    "assets/models/selene.glb",
+
+    function (gltf) {
+
+      const selene = gltf.scene;
+
+      selene.position.set(0, -1.1, 0);
+
+      selene.scale.set(
+        1.25,
+        1.25,
+        1.25
+      );
+
+      scene.add(selene);
+
+      document
+        .getElementById("avatarLoading")
+        ?.remove();
+
+
+      /* SAVE MODEL FOR FUTURE ANIMATION */
+
+      window.SELENE_AVATAR = selene;
+
+      /*
+       * If the GLB contains animations,
+       * prepare them here.
+       */
+
+      if (
+        gltf.animations &&
+        gltf.animations.length > 0
+      ) {
+
+        const mixer =
+          new THREE.AnimationMixer(selene);
+
+        window.SELENE_MIXER = mixer;
+
+        window.SELENE_ANIMATIONS =
+          gltf.animations;
+
+        console.log(
+          "Selené animations:",
+          gltf.animations.map(
+            animation => animation.name
+          )
+        );
+      }
+
+      console.log(
+        "Selené 3D avatar loaded successfully."
+      );
+    },
+
+
+    function (progress) {
+
+      if (progress.total) {
+
+        const percent =
+          (progress.loaded /
+           progress.total) * 100;
+
+        const loading =
+          document.getElementById(
+            "avatarLoading"
+          );
+
+        if (loading) {
+          loading.textContent =
+            `Loading Selené... ${Math.round(percent)}%`;
+        }
+      }
+    },
+
+
+    function (error) {
+
+      console.error(
+        "Selené 3D model failed to load:",
+        error
+      );
+
+      const loading =
+        document.getElementById(
+          "avatarLoading"
+        );
+
+      if (loading) {
+        loading.textContent =
+          "Selené 3D model not found.";
+      }
+    }
+  );
+
+
+  /* ANIMATION */
+
+  const clock = new THREE.Clock();
+
+  function animateSelene() {
+
+    requestAnimationFrame(
+      animateSelene
+    );
+
+    const delta =
+      clock.getDelta();
+
+    if (window.SELENE_MIXER) {
+
+      window.SELENE_MIXER.update(
+        delta
+      );
+    }
+
+    /*
+     * Very subtle natural idle movement.
+     */
+
+    if (window.SELENE_AVATAR) {
+
+      const time =
+        performance.now() * 0.001;
+
+      window.SELENE_AVATAR.rotation.y =
+        Math.sin(time * 0.35) * 0.025;
+
+      window.SELENE_AVATAR.position.y =
+        -1.1 +
+        Math.sin(time * 1.2) * 0.008;
+    }
+
+    renderer.render(
+      scene,
+      camera
+    );
+  }
+
+  animateSelene();
+
+
+  /* RESPONSIVE */
+
+  window.addEventListener(
+    "resize",
+    () => {
+
+      const width =
+        seleneContainer.clientWidth;
+
+      const height =
+        seleneContainer.clientHeight;
+
+      camera.aspect =
+        width / height;
+
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(
+        width,
+        height
+      );
+    }
+  );
+}
