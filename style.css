@@ -1,5 +1,6 @@
-
-/* Project J.A.C.E. 001 — Selené Purple Welcome Screen */
+/* =========================================================
+   PROJECT J.A.C.E. 001 — SELENÉ PURPLE THEME
+   ========================================================= */
 
 :root {
   --font-serif: "Times New Roman", Times, serif;
@@ -51,7 +52,9 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
-/* Background effects */
+/* =========================================================
+   BACKGROUND & LAYOUT
+   ========================================================= */
 
 #bubbleCanvas {
   position: fixed;
@@ -61,8 +64,6 @@ input:focus-visible {
   z-index: 0;
   pointer-events: none;
 }
-
-/* Main layout */
 
 .welcome-wrapper {
   position: relative;
@@ -75,7 +76,9 @@ input:focus-visible {
   flex-direction: column;
 }
 
-/* Header */
+/* =========================================================
+   HEADER
+   ========================================================= */
 
 .system-header {
   display: flex;
@@ -111,7 +114,7 @@ select,
   border: 1px solid var(--border-purple);
   padding: 9px 14px;
   border-radius: 8px;
-  transition: 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 select:hover,
@@ -120,7 +123,9 @@ button:hover {
   box-shadow: 0 0 10px var(--purple-glow);
 }
 
-/* Welcome screen */
+/* =========================================================
+   WELCOME CONTAINER & GREETING
+   ========================================================= */
 
 .welcome-container {
   display: flex;
@@ -132,59 +137,6 @@ button:hover {
   margin-top: 20px;
   padding-bottom: 24px;
 }
-
-/* Avatar */
-
-.avatar-frame {
-  position: relative;
-}
-
-.avatar-viewport {
-  width: 180px;
-  height: 180px;
-  overflow: hidden;
-  border-radius: 50%;
-  border: 3px solid var(--theme-purple);
-  box-shadow: 0 0 35px var(--purple-glow);
-  background: radial-gradient(
-    circle,
-    rgba(183, 139, 233, 0.2),
-    rgba(12, 10, 20, 1)
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-viewport canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.avatar-fallback {
-  color: var(--text-muted);
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-
-.status-indicator {
-  position: absolute;
-  z-index: 2;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background: rgba(183, 139, 233, 0.15);
-  border: 1px solid var(--theme-purple);
-  color: var(--theme-purple);
-  font-size: 11px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  letter-spacing: 1px;
-}
-
-/* Greeting */
 
 .greeting-box {
   max-width: 100%;
@@ -214,7 +166,132 @@ button:hover {
   font-style: italic;
 }
 
-/* Module cards */
+/* =========================================================
+   AVATAR / 3D VIEWPORT
+   ========================================================= */
+
+.avatar-frame {
+  position: relative;
+}
+
+.avatar-viewport,
+#avatarViewport {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 3px solid var(--theme-purple);
+  box-shadow: 0 0 35px var(--purple-glow);
+  background: radial-gradient(
+    circle,
+    rgba(183, 139, 233, 0.2),
+    rgba(12, 10, 20, 1)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-fallback {
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.status-indicator {
+  position: absolute;
+  z-index: 2;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: rgba(183, 139, 233, 0.15);
+  border: 1px solid var(--theme-purple);
+  color: var(--theme-purple);
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.svs-dress-badge {
+  position: absolute;
+  top: 52%;
+  left: 36%;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  z-index: 10;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
+  animation: emblemGlow 4s infinite ease-in-out;
+}
+
+.svs-dress-badge svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes emblemGlow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9)) brightness(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(229, 195, 150, 0.5)) brightness(1.25);
+  }
+}
+
+#selene3D {
+  width: 100%;
+  height: 620px;
+  min-height: 450px;
+  position: relative;
+}
+
+#selene3D canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#avatarLoading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #e2d9f3;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+/* =========================================================
+   MODULE CARDS
+   ========================================================= */
 
 .module-grid {
   display: grid;
@@ -222,6 +299,10 @@ button:hover {
   gap: 16px;
   width: 100%;
   max-width: 900px;
+}
+
+.module-grid.hidden {
+  display: none;
 }
 
 .module-card {
@@ -237,7 +318,7 @@ button:hover {
   border: 1px solid var(--border-purple);
   border-radius: 14px;
   backdrop-filter: blur(10px);
-  transition: 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .module-card:hover {
@@ -256,7 +337,9 @@ button:hover {
   font-size: 18px;
 }
 
-/* FX controls */
+/* =========================================================
+   FX CONTROLS PANEL
+   ========================================================= */
 
 .fx-panel {
   position: fixed;
@@ -278,7 +361,8 @@ button:hover {
 }
 
 .fx-panel.hidden,
-.domain-view.hidden {
+.domain-view.hidden,
+#activeDomainContainer.hidden {
   display: none;
 }
 
@@ -305,9 +389,12 @@ button:hover {
   cursor: pointer;
 }
 
-/* Module workspace */
+/* =========================================================
+   MODULE WORKSPACE
+   ========================================================= */
 
-.domain-view {
+.domain-view,
+#activeDomainContainer {
   width: 100%;
   max-width: 900px;
   animation: fadeIn 0.3s ease-in-out;
@@ -318,7 +405,6 @@ button:hover {
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -364,8 +450,6 @@ button:hover {
   gap: 20px;
 }
 
-/* Visual output area */
-
 .visual-display-panel {
   position: relative;
   width: 100%;
@@ -378,10 +462,6 @@ button:hover {
   background: rgba(12, 10, 20, 0.9);
   border: 1px dashed var(--border-purple);
   border-radius: 10px;
-}
-
-.visual-display-panel > div {
-  max-width: 100%;
 }
 
 .visual-placeholder {
@@ -399,26 +479,30 @@ button:hover {
   font-size: 1.1rem;
 }
 
-/* Question input */
+/* =========================================================
+   INPUT CONSOLE & BUTTONS
+   ========================================================= */
 
 .input-console {
   display: flex;
-  align-items: stretch;
   gap: 12px;
+  align-items: stretch;
 }
 
 .input-console textarea {
   flex: 1;
   min-width: 0;
   min-height: 60px;
-  height: 60px;
-  resize: vertical;
-  padding: 12px;
-  color: var(--text-bright);
+  max-height: 180px;
   background: rgba(12, 10, 20, 0.85);
   border: 1px solid var(--border-purple);
   border-radius: 8px;
+  padding: 12px;
+  color: var(--text-bright);
+  font-family: var(--font-serif);
+  resize: vertical;
   outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-console textarea:focus {
@@ -428,110 +512,168 @@ button:hover {
 
 .execute-btn {
   padding: 0 20px;
-  border: 0;
+  border: none;
   border-radius: 8px;
   background: var(--theme-purple);
   color: var(--bg-deep);
   font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .execute-btn:hover {
   background: #c9a3f2;
+  box-shadow: 0 0 15px var(--purple-glow);
 }
 
-/* Math output */
+.demo-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* =========================================================
+   DOMAIN-SPECIFIC COMPONENTS
+   ========================================================= */
 
 .katex-render-box {
   max-width: 100%;
   overflow-x: auto;
   padding: 20px;
   color: var(--theme-purple);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  text-align: center;
   text-shadow: 0 0 10px var(--purple-glow);
 }
 
-/* Specialized visual areas */
-
-.bio-sequence-view,
-.history-timeline-view,
-.translation-dual-view,
-.quantum-circuit-view,
-.psych-model-view,
 .generic-output-card {
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: var(--text-bright);
+  padding: 16px;
   text-align: center;
-  padding: 14px;
 }
 
-.bio-sequence-view,
-.history-timeline-view,
-.quantum-circuit-view {
+.generic-output-card h3 {
+  color: var(--theme-purple);
+  margin-bottom: 8px;
+}
+
+.bio-sequence-view {
+  width: 100%;
+  display: flex;
   flex-direction: column;
-}
-
-.dna-strand,
-.dna-pair,
-.qubit-line {
+  align-items: center;
+  gap: 6px;
+  padding: 14px;
   font-family: monospace;
   color: var(--theme-purple);
+}
+
+.dna-strand {
   letter-spacing: 2px;
+  font-weight: bold;
 }
 
 .dna-pair {
   color: var(--text-muted);
 }
 
-.timeline-badge,
-.node-box,
-.lang-box,
-.source-card {
-  background: rgba(12, 10, 20, 0.75);
-  border: 1px solid var(--border-purple);
-  padding: 8px 12px;
-  border-radius: 8px;
+.history-timeline-view {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
 }
 
 .timeline-badge {
+  background: rgba(12, 10, 20, 0.75);
+  border: 1px solid var(--border-purple);
   color: var(--theme-purple);
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
 }
 
-.node-box.active-node,
-.lang-box.highlight-box {
+.psych-model-view {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  color: var(--text-muted);
+}
+
+.node-box {
+  padding: 8px 16px;
+  border: 1px solid var(--border-purple);
+  border-radius: 6px;
+  background: rgba(183, 139, 233, 0.1);
+}
+
+.node-box.active-node {
   border-color: var(--theme-purple);
-  box-shadow: 0 0 12px var(--purple-glow);
+  color: var(--theme-purple);
+  box-shadow: 0 0 10px var(--purple-glow);
 }
 
 .translation-dual-view {
+  width: 100%;
+  display: flex;
   gap: 16px;
+  padding: 12px;
 }
 
 .lang-box {
   flex: 1;
   min-width: 0;
+  padding: 12px;
+  background: rgba(23, 19, 38, 0.5);
+  border: 1px solid var(--border-purple);
+  border-radius: 8px;
   overflow-wrap: anywhere;
+}
+
+.lang-box.highlight-box {
+  border-color: var(--theme-purple);
+  box-shadow: 0 0 12px var(--purple-glow);
 }
 
 .lang-tag {
   display: block;
-  margin-bottom: 6px;
-  color: var(--text-muted);
   font-size: 0.75rem;
+  color: var(--theme-purple);
+  margin-bottom: 6px;
+  font-weight: bold;
 }
 
-.generic-output-card {
+.quantum-circuit-view {
+  width: 100%;
+  display: flex;
   flex-direction: column;
-}
-
-.generic-output-card h3 {
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  font-family: monospace;
   color: var(--theme-purple);
 }
 
-/* Screen-reader-only text */
+.qubit-line {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.circuit-caption {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
 
 .sr-only {
   position: absolute;
@@ -545,7 +687,9 @@ button:hover {
   border: 0;
 }
 
-/* Tablet */
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
 
 @media (max-width: 768px) {
   .welcome-wrapper {
@@ -574,9 +718,22 @@ button:hover {
     top: 78px;
     right: 14px;
   }
+
+  .input-console {
+    flex-direction: column;
+  }
+
+  .execute-btn {
+    padding: 12px;
+  }
 }
 
-/* Mobile */
+@media (max-width: 700px) {
+  #selene3D {
+    height: 500px;
+    min-height: 400px;
+  }
+}
 
 @media (max-width: 480px) {
   .system-header {
@@ -606,9 +763,14 @@ button:hover {
     font-size: 14px;
   }
 
-  .avatar-viewport {
+  .avatar-viewport,
+  #avatarViewport {
     width: 150px;
     height: 150px;
+  }
+
+  .module-grid {
+    grid-template-columns: 1fr;
   }
 
   .workspace-panel {
@@ -617,10 +779,6 @@ button:hover {
 
   .workspace-header {
     align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .input-console {
     flex-direction: column;
   }
 
@@ -634,8 +792,7 @@ button:hover {
   }
 }
 
-/* Accessibility: reduced motion */
-
+/* Accessibility: Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -643,321 +800,4 @@ button:hover {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-}
-/* ==========================================
-   INPUT CONSOLE & BUTTONS
-   ========================================== */
-
-.input-console {
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-}
-
-.input-console textarea {
-  flex: 1;
-  min-height: 60px;
-  max-height: 180px;
-  background: rgba(12, 10, 20, 0.8);
-  border: 1px solid var(--border-purple);
-  border-radius: 8px;
-  padding: 12px;
-  color: var(--text-bright);
-  font-family: var(--font-serif);
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input-console textarea:focus {
-  border-color: var(--theme-purple);
-  box-shadow: 0 0 10px var(--purple-glow);
-}
-
-.execute-btn {
-  background: var(--theme-purple);
-  color: var(--bg-deep);
-  font-weight: bold;
-  border: none;
-  padding: 0 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.execute-btn:hover {
-  background: #c9a3f2;
-  box-shadow: 0 0 15px var(--purple-glow);
-}
-
-.demo-note {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-style: italic;
-  text-align: center;
-}
-
-/* ==========================================
-   DOMAIN-SPECIFIC VISUAL COMPONENTS
-   ========================================== */
-
-.katex-render-box {
-  padding: 16px;
-  font-size: 1.3rem;
-  color: var(--text-bright);
-  text-align: center;
-}
-
-.generic-output-card {
-  padding: 16px;
-  text-align: center;
-}
-
-.generic-output-card h3 {
-  color: var(--theme-purple);
-  margin-bottom: 8px;
-}
-
-.bio-sequence-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  font-family: monospace;
-  color: var(--theme-purple);
-}
-
-.dna-strand {
-  letter-spacing: 2px;
-  font-weight: bold;
-}
-
-.dna-pair {
-  color: var(--text-muted);
-}
-
-.history-timeline-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.timeline-badge {
-  background: var(--border-purple);
-  color: var(--text-bright);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-}
-
-.psych-model-view {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--text-muted);
-}
-
-.node-box {
-  padding: 8px 16px;
-  border: 1px solid var(--border-purple);
-  border-radius: 6px;
-  background: rgba(183, 139, 233, 0.1);
-}
-
-.node-box.active-node {
-  border-color: var(--theme-purple);
-  color: var(--theme-purple);
-  box-shadow: 0 0 10px var(--purple-glow);
-}
-
-.translation-dual-view {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-  padding: 12px;
-}
-
-.lang-box {
-  flex: 1;
-  padding: 12px;
-  background: rgba(23, 19, 38, 0.5);
-  border: 1px solid var(--border-purple);
-  border-radius: 8px;
-}
-
-.lang-box.highlight-box {
-  border-color: var(--theme-purple);
-}
-
-.lang-tag {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--theme-purple);
-  margin-bottom: 6px;
-  font-weight: bold;
-}
-
-.quantum-circuit-view {
-  font-family: monospace;
-  color: var(--theme-purple);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.qubit-line {
-  font-size: 1.1rem;
-  letter-spacing: 1px;
-}
-
-.circuit-caption {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ==========================================
-   RESPONSIVE DESIGN
-   ========================================== */
-
-@media (max-width: 768px) {
-  .module-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .system-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .input-console {
-    flex-direction: column;
-  }
-
-  .execute-btn {
-    padding: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .module-grid {
-    grid-template-columns: 1fr;
-  }
-}
-/* Avatar Circular Frame & Badge Overlays */
-.avatar-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.svs-dress-badge {
-  position: absolute;
-  top: 52%;
-  left: 36%;
-  width: 32px;
-  height: 32px;
-  pointer-events: none;
-  z-index: 10;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
-  animation: emblemGlow 4s infinite ease-in-out;
-}
-
-.svs-dress-badge svg {
-  width: 100%;
-  height: 100%;
-}
-
-@keyframes emblemGlow {
-  0%, 100% {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9)) brightness(1);
-  }
-  50% {
-    filter: drop-shadow(0 0 8px rgba(229, 195, 150, 0.5)) brightness(1.25);
-  }
-}
-#avatarViewport {
-  position: relative !important;
-  width: 150px !important; /* adjust to match your circular frame size */
-  height: 150px !important;
-  border-radius: 50% !important;
-  overflow: hidden !important;
-  display: block !important;
-}
-
-.avatar-wrapper {
-  position: relative !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.avatar-img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  display: block !important;
-}
-/* =========================================================
-   SELENÉ 3D AVATAR
-   ========================================================= */
-
-#selene3D {
-  width: 100%;
-  height: 620px;
-  min-height: 450px;
-  position: relative;
-}
-
-#selene3D canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-#avatarLoading {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-
-  color: #e2d9f3;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-
-  pointer-events: none;
-}
-
-@media (max-width: 700px) {
-
-  #selene3D {
-    height: 500px;
-    min-height: 400px;
-  }
-
 }
