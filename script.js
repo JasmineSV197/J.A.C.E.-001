@@ -210,14 +210,95 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================
   // 3. SECURE AI EXECUTION ENGINE (Cloudflare Worker Proxy)
   // =========================================================
+// =========================================================
+  // AI EXECUTION ENGINE (SELENÉ VESPERIINE PROXY INTEGRATION)
+  // =========================================================
   const WORKER_URL = "https://selene-proxy.sanamyasharma110911.workers.dev";
-  const mainExecuteBtn = document.querySelector(".input-console-container .execute-btn");
-  const mainTextarea = document.querySelector(".input-console-container textarea");
+  
+  // Conversation history and processing lock state
+  let conversationHistory = [];
+  let isAiProcessing = false;
 
+  const mainExecuteBtn = document.querySelector(".input-console-container .execute-btn") || document.getElementById("submitQueryBtn");
+  const mainTextarea = document.querySelector(".input-console-container textarea") || document.getElementById("domainQueryInput");
+
+  // Bind main input submission
   mainExecuteBtn?.addEventListener("click", () => {
-    handleAiQuery(mainTextarea.value);
-    mainTextarea.value = "";
+    if (mainTextarea) {
+      handleAiQuery(mainTextarea.value);
+    }
   });
+
+  mainTextarea?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleAiQuery(mainTextarea.value);
+    }
+  });
+
+  async function handleAiQuery(userQuery) {
+    const query = userQuery.trim();
+    
+    // Prevent empty prompts or duplicate submissions while processing
+    if (!query || isAiProcessing) return;
+
+    isAiProcessing = true;
+    if (mainExecuteBtn) mainExecuteBtn.disabled = true;
+    if (mainTextarea) mainTextarea.value = "";
+
+    if (subtitleOutput) {
+      subtitleOutput.textContent = '"Processing request..."';
+    }
+
+    // Append user message to history
+    conversationHistory.push({ role: "user", content: query });
+
+    try {
+      // Send prompt along with recent conversation history to the worker proxy
+      const res = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          prompt: query, 
+          history: conversationHistory.slice(-6) // Keep last 6 turns for context
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const reply = data.response || data.reply || "I am currently unable to process that request.";
+
+      // Append assistant reply to history
+      conversationHistory.push({ role: "assistant", content: reply });
+
+      // Display response in the subtitle bar
+      if (subtitleOutput) {
+        subtitleOutput.textContent = `"${reply}"`;
+      }
+
+      // Voice output (Speech Synthesis)
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel(); // Clear any pending speech
+        const utterance = new SpeechSynthesisUtterance(reply);
+        utterance.pitch = 1.1;
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      }
+
+    } catch (err) {
+      console.error("AI Proxy communication failure:", err);
+      if (subtitleOutput) {
+        subtitleOutput.textContent = '"Network error. Please check your connection."';
+      }
+    } finally {
+      // Release processing lock
+      isAiProcessing = false;
+      if (mainExecuteBtn) mainExecuteBtn.disabled = false;
+    }
+  }
 
   async function handleAiQuery(userQuery) {
     const query = userQuery.trim();
