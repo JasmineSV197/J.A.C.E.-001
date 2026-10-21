@@ -210,9 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================
   // 3. SECURE AI EXECUTION ENGINE (Cloudflare Worker Proxy)
   // =========================================================
-// =========================================================
-  // AI EXECUTION ENGINE (SELENÉ VESPERIINE PROXY INTEGRATION)
-  // =========================================================
   const WORKER_URL = "https://selene-proxy.sanamyasharma110911.workers.dev";
   
   // Conversation history and processing lock state
@@ -297,43 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Release processing lock
       isAiProcessing = false;
       if (mainExecuteBtn) mainExecuteBtn.disabled = false;
-    }
-  }
-
-  async function handleAiQuery(userQuery) {
-    const query = userQuery.trim();
-    if (!query) return;
-
-    if (subtitleOutput) {
-      subtitleOutput.textContent = '"Processing query..."';
-    }
-
-    try {
-      const res = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: query })
-      });
-
-      const data = await res.json();
-      const reply = data.response || "System connection error.";
-
-      if (subtitleOutput) {
-        subtitleOutput.textContent = `"${reply}"`;
-      }
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel(); // Stop any active speech
-        const utterance = new SpeechSynthesisUtterance(reply);
-        utterance.pitch = 1.1;
-        utterance.rate = 0.95;
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch (err) {
-      console.error(err);
-      if (subtitleOutput) {
-        subtitleOutput.textContent = '"Core system offline."';
-      }
     }
   }
 
