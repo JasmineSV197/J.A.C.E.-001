@@ -207,57 +207,55 @@ document.addEventListener("DOMContentLoaded", () => {
     subtitleOutput.textContent = '"Hello. I am Selené. Select a specialized module to begin."';
   }
 
-  // =========================================================
+// =========================================================
   // 3. SECURE AI EXECUTION ENGINE (Cloudflare Worker Proxy)
   // =========================================================
   const WORKER_URL = "https://selene-proxy.sanamyasharma110911.workers.dev";
   
-  // Conversation history and processing lock state
   let conversationHistory = [];
   let isAiProcessing = false;
 
-  const mainExecuteBtn = document.querySelector(".input-console-container .execute-btn") || document.getElementById("submitQueryBtn");
-  const mainTextarea = document.querySelector(".input-console-container textarea") || document.getElementById("domainQueryInput");
-
-  // Bind main input submission
-  mainExecuteBtn?.addEventListener("click", () => {
-    if (mainTextarea) {
-      handleAiQuery(mainTextarea.value);
+  // Unified global event listener for all execute buttons and textareas
+  document.addEventListener("click", (event) => {
+    if (event.target && (event.target.id === "submitQueryBtn" || event.target.classList.contains("execute-btn"))) {
+      const activeTextarea = document.getElementById("domainQueryInput") || document.querySelector(".input-console-container textarea");
+      if (activeTextarea) {
+        handleAiQuery(activeTextarea.value, activeTextarea);
+      }
     }
   });
 
-  mainTextarea?.addEventListener("keydown", (event) => {
+  document.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      handleAiQuery(mainTextarea.value);
+      const activeTextarea = document.getElementById("domainQueryInput") || document.querySelector(".input-console-container textarea");
+      if (document.activeElement === activeTextarea) {
+        event.preventDefault();
+        handleAiQuery(activeTextarea.value, activeTextarea);
+      }
     }
   });
 
-  async function handleAiQuery(userQuery) {
-    const query = userQuery.trim();
+  async function handleAiQuery(userQuery, textareaElement) {
+    const query = (userQuery || "").trim();
     
-    // Prevent empty prompts or duplicate submissions while processing
     if (!query || isAiProcessing) return;
 
     isAiProcessing = true;
-    if (mainExecuteBtn) mainExecuteBtn.disabled = true;
-    if (mainTextarea) mainTextarea.value = "";
+    if (textareaElement) textareaElement.value = "";
 
     if (subtitleOutput) {
       subtitleOutput.textContent = '"Processing request..."';
     }
 
-    // Append user message to history
     conversationHistory.push({ role: "user", content: query });
 
     try {
-      // Send prompt along with recent conversation history to the worker proxy
       const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           prompt: query, 
-          history: conversationHistory.slice(-6) // Keep last 6 turns for context
+          history: conversationHistory.slice(-6) 
         })
       });
 
@@ -268,21 +266,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       const reply = data.response || data.reply || "I am currently unable to process that request.";
 
-      // Append assistant reply to history
       conversationHistory.push({ role: "assistant", content: reply });
 
-      // Display response in the subtitle bar
       if (subtitleOutput) {
         subtitleOutput.textContent = `"${reply}"`;
-      }
-
-      // Voice output (Speech Synthesis)
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel(); // Clear any pending speech
-        const utterance = new SpeechSynthesisUtterance(reply);
-        utterance.pitch = 1.1;
-        utterance.rate = 0.95;
-        window.speechSynthesis.speak(utterance);
       }
 
     } catch (err) {
@@ -291,9 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitleOutput.textContent = '"Network error. Please check your connection."';
       }
     } finally {
-      // Release processing lock
       isAiProcessing = false;
-      if (mainExecuteBtn) mainExecuteBtn.disabled = false;
     }
   }
 
