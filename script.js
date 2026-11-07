@@ -684,48 +684,42 @@ const OLLAMA_MODEL = "qwen2.5:1.5b";
 
     conversationHistory.push({ role: "user", content: query });
 
-    try {
-      const res = await fetch(OLLAMA_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    model: OLLAMA_MODEL,
-    messages: conversationHistory.slice(-6),
-    stream: false
-  })
-});
+  
+try {
+  const res = await fetch(OLLAMA_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      messages: conversationHistory.slice(-6),
+      stream: false
+    })
+  });
 
-if (!res.ok) {
-  const errorText = await res.text();
-  throw new Error(`Ollama HTTP ${res.status}: ${errorText}`);
-}
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Ollama HTTP ${res.status}: ${errorText}`);
+  }
 
-const data = await res.json();
-const reply = data.message?.content?.trim();
+  const data = await res.json();
+  const reply = data.message?.content?.trim();
 
-if (!reply) {
-  throw new Error("Ollama returned an empty response.");
-}
+  if (!reply) {
+    throw new Error("Ollama returned an empty response.");
+  }
 
-conversationHistory.push({
-  role: "assistant",
-  content: reply
-});
+  conversationHistory.push({
+    role: "assistant",
+    content: reply
+  });
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+  if (subtitleOutput) {
+    subtitleOutput.textContent = reply;
+  }
 
-      const data = await res.json();
-      const reply = data.response || data.reply || "I am currently unable to process that request.";
 
-      conversationHistory.push({ role: "assistant", content: reply });
-
-      if (subtitleOutput) {
-        subtitleOutput.textContent = `"${reply}"`;
-      }
 
     } catch (err) {
       console.error("AI Proxy communication failure:", err);
