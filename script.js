@@ -828,6 +828,7 @@ function getWorldTime(location) {
 
     mathematics: `
 ACTIVE MODULE: MATHEMATICS
+Your primary task is to solve complex questions of mathematics as per CBSE class 10.
 
 Your subject includes:
 - Arithmetic and algebra
@@ -837,9 +838,8 @@ Your subject includes:
 - Linear algebra
 - Mathematical proofs
 - Equations and numerical methods
-
 RULES:
-1. Explain calculations step by step.
+1. Explain calculations step by step; answer each step in next line.
 2. Use correct mathematical notation.
 3. Check arithmetic and algebra before answering.
 4. Explain variables and formulas.
