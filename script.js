@@ -1,6 +1,69 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
+  // =========================================================
+// 🌍 SELENÉ — WORLD CLOCK
+// =========================================================
+
+const WORLD_TIME_ZONES = {
+    "india": "Asia/Kolkata",
+    "indore": "Asia/Kolkata",
+    "new delhi": "Asia/Kolkata",
+    "london": "Europe/London",
+    "united kingdom": "Europe/London",
+    "paris": "Europe/Paris",
+    "france": "Europe/Paris",
+    "berlin": "Europe/Berlin",
+    "tokyo": "Asia/Tokyo",
+    "japan": "Asia/Tokyo",
+    "singapore": "Asia/Singapore",
+    "dubai": "Asia/Dubai",
+    "uae": "Asia/Dubai",
+    "sydney": "Australia/Sydney",
+    "new york": "America/New_York",
+    "los angeles": "America/Los_Angeles",
+    "chicago": "America/Chicago",
+    "toronto": "America/Toronto",
+    "vancouver": "America/Vancouver",
+    "moscow": "Europe/Moscow",
+    "seoul": "Asia/Seoul",
+    "beijing": "Asia/Shanghai",
+    "china": "Asia/Shanghai",
+    "bangkok": "Asia/Bangkok",
+    "nepal": "Asia/Kathmandu"
+};
+
+function getWorldTime(location) {
+    const place = location.trim().toLowerCase();
+
+    const timeZone =
+        WORLD_TIME_ZONES[place] || location.trim();
+
+    try {
+        const now = new Date();
+
+        const formatted = new Intl.DateTimeFormat("en-IN", {
+            timeZone,
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+            timeZoneName: "long"
+        }).format(now);
+
+        return `Current local date and time in ${location}: ${formatted}.
+        Time zone: ${timeZone}.`;
+
+    } catch (error) {
+        return `I could not identify the time zone for ${location}.
+        Please specify a city or an IANA time zone, such as
+        America/New_York or Europe/London.`;
+    }
+}
 
   // =========================================================
   // 1. BUBBLE BACKGROUND & FX CONTROLS
@@ -1081,7 +1144,16 @@ Do not use an outdated training-data date as today's date.
 
 You do not automatically know the current time in every
 other country. Do not guess time-zone conversions.
+WORLD TIME INTELLIGENCE:
 
+- You can calculate the current date and time for locations worldwide.
+- Use the supplied WORLD TIME information whenever available.
+- Never guess or invent a current time.
+- Account for daylight saving time automatically.
+- If a country has multiple time zones, ask which city or region.
+- Understand IANA time zones such as Asia/Tokyo,
+  Europe/London and America/New_York.
+- Give direct answers without unnecessary introductions.
 ==================================================
 KNOWLEDGE LIMITATIONS
 ==================================================
