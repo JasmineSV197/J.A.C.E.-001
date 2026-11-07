@@ -647,7 +647,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================
   // 3. SECURE AI EXECUTION ENGINE (Cloudflare Worker Proxy)
   // =========================================================
-  const WORKER_URL = "https://selene-proxy.sanamyasharma110911.workers.dev";
+ const OLLAMA_URL = "http://localhost:11434/api/chat";
+const OLLAMA_MODEL = "qwen2.5:1.5b";
   
   let conversationHistory = [];
   let isAiProcessing = false;
@@ -684,14 +685,34 @@ document.addEventListener("DOMContentLoaded", () => {
     conversationHistory.push({ role: "user", content: query });
 
     try {
-      const res = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          prompt: query, 
-          history: conversationHistory.slice(-6) 
-        })
-      });
+      const res = await fetch(OLLAMA_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: OLLAMA_MODEL,
+    messages: conversationHistory.slice(-6),
+    stream: false
+  })
+});
+
+if (!res.ok) {
+  const errorText = await res.text();
+  throw new Error(`Ollama HTTP ${res.status}: ${errorText}`);
+}
+
+const data = await res.json();
+const reply = data.message?.content?.trim();
+
+if (!reply) {
+  throw new Error("Ollama returned an empty response.");
+}
+
+conversationHistory.push({
+  role: "assistant",
+  content: reply
+});
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
