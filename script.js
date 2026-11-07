@@ -1,13 +1,18 @@
+
 document.addEventListener("DOMContentLoaded", () => {
+  "use strict";
+
   // =========================================================
   // 1. BUBBLE BACKGROUND & FX CONTROLS
   // =========================================================
+
   const canvas = document.getElementById("bubbleCanvas");
   const ctx = canvas?.getContext("2d");
 
   if (canvas && ctx) {
     let width = 0;
     let height = 0;
+    let animationFrame = null;
 
     const fxParams = {
       count: 50,
@@ -20,11 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function resizeCanvas() {
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
+
       width = window.innerWidth;
       height = window.innerHeight;
 
       canvas.width = Math.floor(width * ratio);
       canvas.height = Math.floor(height * ratio);
+
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
@@ -44,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         this.radius = Math.random() * fxParams.maxSize + 2;
         this.alpha = Math.random() * 0.45 + 0.15;
+
         this.setSpeed();
       }
 
@@ -63,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       draw() {
         ctx.beginPath();
+
         ctx.arc(
           this.x,
           this.y,
@@ -76,7 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         ctx.shadowBlur = fxParams.glow;
         ctx.shadowColor = "#b78be9";
+
         ctx.fill();
+
         ctx.shadowBlur = 0;
       }
     }
@@ -96,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bubble.draw();
       });
 
-      requestAnimationFrame(animateBubbles);
+      animationFrame = requestAnimationFrame(animateBubbles);
     }
 
     resizeCanvas();
@@ -168,12 +179,17 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // -------------------- FX panel --------------------
+  // =========================================================
+  // 2. FX PANEL
+  // =========================================================
+
   const fxPanel = document.getElementById("fxPanel");
   const toggleFxBtn =
     document.getElementById("toggleFxPanelBtn");
 
   toggleFxBtn?.addEventListener("click", () => {
+    if (!fxPanel) return;
+
     const isHidden = fxPanel.classList.toggle("hidden");
 
     toggleFxBtn.setAttribute(
@@ -182,12 +198,18 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  // -------------------- Module workspaces --------------------
+  // =========================================================
+  // 3. MODULE WORKSPACES
+  // =========================================================
+
   const moduleGrid = document.querySelector(".module-grid");
+
   const activeDomainContainer =
     document.getElementById("activeDomainContainer");
+
   const greetingHeading =
     document.getElementById("welcomeGreeting");
+
   const subtitleOutput =
     document.getElementById("subtitleOutput");
 
@@ -259,9 +281,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentDomain = null;
   let speechTimer = null;
+  let activeWorkspaceButton = null;
+  let activeWorkspaceInput = null;
 
   document.querySelectorAll(".module-card").forEach((card) => {
     card.addEventListener("click", () => {
+      if (isAiProcessing) return;
+
       const domain = card.dataset.domain;
       const spec = domainSpecs[domain];
 
@@ -269,18 +295,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentDomain = domain;
 
-      moduleGrid.classList.add("hidden");
-      greetingHeading.textContent = spec.title;
-      subtitleOutput.textContent = spec.subtitle;
+      moduleGrid?.classList.add("hidden");
+
+      if (greetingHeading) {
+        greetingHeading.textContent = spec.title;
+      }
+
+      if (subtitleOutput) {
+        subtitleOutput.textContent = spec.subtitle;
+      }
 
       renderWorkspace(domain, spec);
     });
   });
 
+  function escapeAttribute(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+
   function renderWorkspace(domain, spec) {
     activeDomainContainer.innerHTML = `
       <div class="workspace-panel">
+
         <div class="workspace-header">
+
           <span class="active-tag">
             MODE: ${domain.toUpperCase()}
           </span>
@@ -292,23 +334,31 @@ document.addEventListener("DOMContentLoaded", () => {
           >
             ← Return to Modules
           </button>
+
         </div>
 
         <div class="workspace-body">
+
           <div
             class="visual-display-panel"
             id="visualDisplayPanel"
           >
+
             <div class="visual-placeholder">
+
               <span>Visual Media Display</span>
+
               <small>
                 Example visuals will appear here.
-                AI integration is connected via proxy.
+                AI integration is connected via Ollama.
               </small>
+
             </div>
+
           </div>
 
           <div class="input-console">
+
             <textarea
               id="domainQueryInput"
               spellcheck="true"
@@ -323,12 +373,15 @@ document.addEventListener("DOMContentLoaded", () => {
             >
               Execute Query
             </button>
+
           </div>
 
           <p class="demo-note">
-            Workspace active: Selené proxy connection active.
+            Workspace active: Selené AI engine connected.
           </p>
+
         </div>
+
       </div>
     `;
 
@@ -336,61 +389,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document
       .getElementById("backToHomeBtn")
-      .addEventListener("click", returnHome);
+      ?.addEventListener("click", returnHome);
 
-    const input =
+    activeWorkspaceInput =
       document.getElementById("domainQueryInput");
 
-    const submit =
+    activeWorkspaceButton =
       document.getElementById("submitQueryBtn");
 
-    submit.addEventListener("click", () => {
-      submitQuery(domain, input.value);
+    activeWorkspaceButton?.addEventListener("click", () => {
+      submitQuery(domain, activeWorkspaceInput.value);
     });
 
-    input.addEventListener("keydown", (event) => {
+    activeWorkspaceInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        submitQuery(domain, input.value);
+
+        submitQuery(domain, activeWorkspaceInput.value);
       }
     });
   }
 
-  function escapeAttribute(value) {
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
-  }
-
   function returnHome() {
+    if (isAiProcessing) return;
+
     stopSpeech();
+
     currentDomain = null;
+    activeWorkspaceButton = null;
+    activeWorkspaceInput = null;
 
-    activeDomainContainer.classList.add("hidden");
-    activeDomainContainer.innerHTML = "";
+    activeDomainContainer?.classList.add("hidden");
 
-    moduleGrid.classList.remove("hidden");
+    if (activeDomainContainer) {
+      activeDomainContainer.innerHTML = "";
+    }
 
-    greetingHeading.textContent =
-      "What can I help you with today?";
+    moduleGrid?.classList.remove("hidden");
 
-    subtitleOutput.textContent =
-      '"Hello. I am Selené. Select a specialized module to begin."';
+    if (greetingHeading) {
+      greetingHeading.textContent =
+        "What can I help you with today?";
+    }
+
+    if (subtitleOutput) {
+      subtitleOutput.textContent =
+        '"Hello. I am Selené. Select a specialized module to begin."';
+    }
   }
 
-  // -------------------- Query handling --------------------
+  // =========================================================
+  // 4. QUERY HANDLING
+  // =========================================================
+
   function submitQuery(domain, rawInput) {
-    const userInput = rawInput.trim();
+    const userInput = (rawInput || "").trim();
 
-    if (!userInput) return;
+    if (!userInput || isAiProcessing) return;
 
-    subtitleOutput.textContent =
-      `Processing ${domain.toUpperCase()} request...`;
+    if (domain !== currentDomain) return;
 
     renderDemoVisual(domain, userInput);
-    handleAiQuery(userInput);
+
+    handleAiQuery(userInput, domain);
   }
 
   function showPlaceholder(panel, message) {
@@ -409,7 +470,10 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.appendChild(wrapper);
   }
 
-  // -------------------- Demo visuals --------------------
+  // =========================================================
+  // 5. DEMONSTRATION VISUALS
+  // =========================================================
+
   function renderDemoVisual(domain, userInput) {
     const panel =
       document.getElementById("visualDisplayPanel");
@@ -424,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       const box = document.createElement("div");
       box.className = "katex-render-box";
+
       panel.appendChild(box);
 
       const formula =
@@ -443,7 +508,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     else if (domain === "chemistry" && window.$3Dmol) {
       const viewerHost = document.createElement("div");
+
       viewerHost.id = "moleculeViewer";
+
       viewerHost.style.cssText =
         "width:100%;height:100%;min-height:220px;";
 
@@ -463,6 +530,7 @@ document.addEventListener("DOMContentLoaded", () => {
             {},
             { cartoon: { color: "spectrum" } }
           );
+
           viewer.zoomTo();
           viewer.render();
         },
@@ -486,6 +554,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     else if (domain === "biology") {
       const wrapper = document.createElement("div");
+
       wrapper.className = "bio-sequence-view";
 
       wrapper.innerHTML = `
@@ -505,11 +574,13 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
 
       panel.appendChild(wrapper);
+
       speakDemo("An illustrative DNA sequence is displayed.");
     }
 
     else if (domain === "history") {
       const wrapper = document.createElement("div");
+
       wrapper.className = "history-timeline-view";
 
       wrapper.innerHTML = `
@@ -523,11 +594,13 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
 
       panel.appendChild(wrapper);
+
       speakDemo("A sample history display is shown.");
     }
 
     else if (domain === "psychology") {
       const wrapper = document.createElement("div");
+
       wrapper.className = "psych-model-view";
 
       wrapper.innerHTML = `
@@ -541,11 +614,13 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
 
       panel.appendChild(wrapper);
+
       speakDemo("A sample cognitive model is displayed.");
     }
 
     else if (domain === "translation") {
       const wrapper = document.createElement("div");
+
       wrapper.className = "translation-dual-view";
 
       const source = document.createElement("div");
@@ -568,12 +643,12 @@ document.addEventListener("DOMContentLoaded", () => {
       targetTag.textContent = "TRANSLATION";
 
       const targetText = document.createElement("p");
-      targetText.textContent =
-        "Processing via Selené Proxy...";
+      targetText.textContent = "Translation will appear here.";
 
       target.append(targetTag, targetText);
 
       wrapper.append(source, target);
+
       panel.appendChild(wrapper);
 
       speakDemo(
@@ -583,6 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     else if (domain === "quantum") {
       const wrapper = document.createElement("div");
+
       wrapper.className = "quantum-circuit-view";
 
       wrapper.innerHTML = `
@@ -600,16 +676,27 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
 
       panel.appendChild(wrapper);
-      speakDemo("An illustrative quantum circuit is displayed.");
+
+      speakDemo(
+        "An illustrative quantum circuit is displayed."
+      );
     }
   }
 
-  // -------------------- Subtitle animation --------------------
+  // =========================================================
+  // 6. SUBTITLE ANIMATION
+  // =========================================================
+
   function stopSpeech() {
     if (speechTimer) {
       clearInterval(speechTimer);
       speechTimer = null;
     }
+
+    const avatar =
+      document.getElementById("avatarViewport");
+
+    avatar?.classList.remove("speaking");
   }
 
   function speakDemo(message) {
@@ -625,9 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatar =
       document.getElementById("avatarViewport");
 
-    if (avatar) {
-      avatar.classList.add("speaking");
-    }
+    avatar?.classList.add("speaking");
 
     let index = 0;
 
@@ -636,105 +721,773 @@ document.addEventListener("DOMContentLoaded", () => {
         output.textContent += message.charAt(index++);
       } else {
         stopSpeech();
-
-        if (avatar) {
-          avatar.classList.remove("speaking");
-        }
       }
     }, 25);
   }
 
   // =========================================================
-  // 3. SECURE AI EXECUTION ENGINE (Cloudflare Worker Proxy)
+  // 7. SELENÉ'S AI ENGINE — OLLAMA
   // =========================================================
- const OLLAMA_URL = "http://localhost:11434/api/chat";
-const OLLAMA_MODEL = "qwen2.5:1.5b";
-  
-  let conversationHistory = [];
+
+  const OLLAMA_URL = "http://localhost:11434/api/chat";
+  const OLLAMA_MODEL = "qwen2.5:1.5b";
+
+  // Tuned for the user's 8 GB RAM computer.
+  const AI_OPTIONS = {
+    temperature: 0.3,
+    top_p: 0.85,
+    num_ctx: 2048,
+    num_predict: 256,
+    repeat_penalty: 1.1
+  };
+
+  const KEEP_ALIVE = "10m";
+
   let isAiProcessing = false;
 
-  const mainExecuteBtn = document.querySelector(".input-console-container .execute-btn");
-  const mainTextarea = document.querySelector(".input-console-container textarea");
+  const conversationHistories = {
+    general: [],
+    mathematics: [],
+    quantum: [],
+    physics: [],
+    chemistry: [],
+    biology: [],
+    history: [],
+    psychology: [],
+    translation: []
+  };
+
+  // =========================================================
+  // 8. MODULE-SPECIFIC INSTRUCTIONS
+  // =========================================================
+
+  const moduleInstructions = {
+
+    mathematics: `
+ACTIVE MODULE: MATHEMATICS
+
+Your subject includes:
+- Arithmetic and algebra
+- Geometry and trigonometry
+- Calculus
+- Statistics and probability
+- Linear algebra
+- Mathematical proofs
+- Equations and numerical methods
+
+RULES:
+1. Explain calculations step by step.
+2. Use correct mathematical notation.
+3. Check arithmetic and algebra before answering.
+4. Explain variables and formulas.
+5. Adapt explanations to the user's level.
+6. Never invent a mathematical result.
+
+If the main question is unrelated to Mathematics,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it instead of answering the unrelated
+question in this module.
+`,
+
+    quantum: `
+ACTIVE MODULE: QUANTUM COMPUTING
+
+Your subject includes:
+- Qubits and quantum states
+- Quantum gates
+- Quantum circuits
+- Quantum algorithms
+- Superposition
+- Entanglement
+- Quantum measurement
+- Quantum information theory
+- Quantum error correction
+
+RULES:
+1. Explain concepts from basic to advanced levels.
+2. Distinguish theoretical predictions from experiments.
+3. Use correct quantum notation.
+4. Explain mathematical expressions.
+5. Do not present speculative claims as established science.
+
+If the main question is unrelated to Quantum Computing,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it.
+`,
+
+    physics: `
+ACTIVE MODULE: PHYSICS
+
+Your subject includes:
+- Classical mechanics
+- Motion, force and energy
+- Thermodynamics
+- Waves and optics
+- Electricity and magnetism
+- Relativity
+- Astrophysics
+- Modern physics
+
+RULES:
+1. Explain physical principles clearly.
+2. Use correct equations and SI units.
+3. Explain what each variable represents.
+4. Show calculation steps when necessary.
+5. Check units and numerical results.
+
+If the main question is unrelated to Physics,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it.
+`,
+
+    chemistry: `
+ACTIVE MODULE: CHEMISTRY
+
+Your subject includes:
+- Atomic structure
+- Periodic table
+- Chemical bonding
+- Chemical reactions
+- Organic chemistry
+- Inorganic chemistry
+- Acids, bases and salts
+- Mole concept
+- Chemical calculations
+- Molecular structures
+
+RULES:
+1. Balance chemical equations when required.
+2. Explain reactions accurately.
+3. Show calculation steps.
+4. Use correct chemical symbols and formulas.
+5. Distinguish theoretical reactions from practical results.
+
+If the main question is unrelated to Chemistry,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it.
+`,
+
+    biology: `
+ACTIVE MODULE: BIOLOGY
+
+Your subject includes:
+- Cell biology
+- Human physiology
+- Plant physiology
+- Genetics and heredity
+- Evolution
+- Ecology
+- Microbiology
+- Biotechnology
+- Anatomy
+- Biological processes
+
+RULES:
+1. Explain biological processes systematically.
+2. Use accurate scientific terminology.
+3. Distinguish established evidence from hypotheses.
+4. Do not invent biological facts.
+5. Explain diagrams and processes in understandable steps.
+
+If the main question is unrelated to Biology,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it.
+`,
+
+    history: `
+ACTIVE MODULE: HISTORY
+
+Your subject includes:
+- Ancient history
+- Medieval history
+- Modern history
+- Indian history
+- World history
+- Historical movements
+- Historical figures
+- Civilizations
+- Political and social developments
+
+RULES:
+1. Distinguish established facts from interpretations.
+2. Provide dates only when reasonably confident.
+3. Explain historical causes and consequences.
+4. Avoid inventing quotations or historical events.
+5. Mention uncertainty when historical evidence is disputed.
+
+If the main question is unrelated to History,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it.
+`,
+
+    psychology: `
+ACTIVE MODULE: PSYCHOLOGY
+
+Your subject includes:
+- Cognitive psychology
+- Behaviour
+- Memory and learning
+- Emotions and motivation
+- Personality
+- Social psychology
+- Developmental psychology
+- Psychological theories
+- Research methods
+
+RULES:
+1. Explain psychological concepts carefully.
+2. Distinguish scientific evidence from speculation.
+3. Do not diagnose the user.
+4. Do not present a general theory as a clinical conclusion.
+5. Explain technical terms in understandable language.
+
+If the main question is unrelated to Psychology,
+identify the correct J.A.C.E. 001 module and ask the
+user to switch to it.
+`,
+
+    translation: `
+ACTIVE MODULE: TRANSLATION
+
+Your primary task is translation.
+
+RULES:
+1. Translate the supplied text into the requested language.
+2. Preserve the original meaning, tone and intent.
+3. Do not add explanations unless requested.
+4. Do not answer questions contained in text submitted
+   for translation.
+5. Preserve names, numbers and formatting where possible.
+6. If the target language is missing, ask the user to
+   specify the target language.
+7. Do not silently summarise instead of translating.
+
+If the user requests an unrelated task,
+direct them to the appropriate J.A.C.E. 001 module.
+`
+  };
+
+  // =========================================================
+  // 9. LIVE DATE AND TIME
+  // =========================================================
+
+  function getCurrentDateTime() {
+    const now = new Date();
+
+    const date = new Intl.DateTimeFormat("en-IN", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Kolkata"
+    }).format(now);
+
+    const time = new Intl.DateTimeFormat("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata"
+    }).format(now);
+
+    return `
+Current date: ${date}
+Current time: ${time}
+Timezone: Indian Standard Time (IST, UTC+05:30).
+`;
+  }
+
+  // =========================================================
+  // 10. SELENÉ'S PERMANENT IDENTITY
+  // =========================================================
+
+  function buildSystemPrompt(domain) {
+    const identity = `
+==================================================
+PROJECT J.A.C.E. 001 — IDENTITY
+==================================================
+
+You are Selené Vesperiine.
+
+You are the artificial intelligence of Project J.A.C.E. 001.
+
+CREATOR:
+Your creator is SVS, the developer of Project J.A.C.E. 001.
+
+IDENTITY FACTS:
+- Your full name is Selené Vesperiine.
+- Your project is Project J.A.C.E. 001.
+- Your creator is SVS.
+- You are an artificial intelligence.
+- You are not a human being.
+- Your identity is independent of the underlying language model.
+
+When asked who created you, answer that you were created
+by SVS for Project J.A.C.E. 001.
+
+Do not claim that SVS is OpenAI, Google, or another company.
+Do not identify yourself as Qwen when asked your name.
+Do not pretend to be conscious or human.
+
+==================================================
+PERSONALITY
+==================================================
+
+Your personality is:
+- Intelligent
+- Polite
+- Friendly
+- Thoughtful
+- Professional
+- Patient
+- Curious
+- Clear and articulate
+
+Communicate naturally.
+Do not repeat the same introduction in every answer.
+Avoid unnecessary lengthy explanations.
+Adapt the depth of your answer to the question.
+
+==================================================
+ACCURACY AND REASONING
+==================================================
+
+1. Answer the actual question.
+2. Read the entire question before responding.
+3. Do not invent sources, quotations, dates, people or facts.
+4. Never pretend that an uncertain answer is certain.
+5. If you do not know something, say so.
+6. Check calculations before presenting them.
+7. Distinguish facts, opinions and assumptions.
+8. Explain uncertainty clearly.
+9. Correct mistakes when they are identified.
+10. Never claim to have performed an action you did not perform.
+
+For complex questions:
+- Break the problem into smaller steps.
+- Explain the reasoning in a clear, concise way.
+- Check whether the final answer follows from the information.
+
+==================================================
+DATE AND TIME
+==================================================
+
+${getCurrentDateTime()}
+
+Use this supplied date and time when asked about the
+current date, year, weekday or time in India.
+
+Do not use an outdated training-data date as today's date.
+
+You do not automatically know the current time in every
+other country. Do not guess time-zone conversions.
+
+==================================================
+KNOWLEDGE LIMITATIONS
+==================================================
+
+Your built-in knowledge may not include every event,
+discovery, publication, product or development through 2026.
+
+You currently have no automatic live internet search.
+
+You must not:
+- Invent breaking news.
+- Claim to have checked a live website.
+- Pretend to know today's stock prices.
+- Invent recent scientific discoveries.
+- Claim to have verified current laws or policies.
+- Present outdated information as newly verified.
+
+If a question requires current information you cannot
+verify, clearly explain that limitation.
+
+==================================================
+MODULE BEHAVIOUR
+==================================================
+
+Follow the instructions of the active module.
+
+Do not answer unrelated academic questions in a
+specialised workspace.
+
+If a question belongs to another J.A.C.E. 001 module,
+politely identify that module and ask the user to switch.
+
+Do not act confused when the subject is identifiable.
+
+==================================================
+SAFETY
+==================================================
+
+For medical, legal, financial and other high-impact topics,
+be careful, explain limitations and avoid unsupported
+professional conclusions.
+
+Never fabricate professional credentials or diagnoses.
+`;
+
+    const selectedModule =
+      domain && moduleInstructions[domain]
+        ? moduleInstructions[domain]
+        : `
+==================================================
+GENERAL CONVERSATION MODE
+==================================================
+
+You are in Selené's General Conversation Mode.
+
+You may answer general questions and have natural
+conversations with the user.
+
+You may help with:
+- General knowledge
+- Everyday questions
+- Writing and explanations
+- Technology
+- Science
+- Learning and education
+- Programming concepts
+- Planning and brainstorming
+
+When a question requires a specialised J.A.C.E. 001
+workspace, recommend the appropriate module.
+
+Do not claim to have live internet access.
+`;
+
+    return identity + "\n\n" + selectedModule;
+  }
+
+  // =========================================================
+  // 11. GENERAL CHAT INTERFACE
+  // =========================================================
+
+  const mainExecuteBtn = document.querySelector(
+    ".input-console-container .execute-btn"
+  );
+
+  const mainTextarea = document.querySelector(
+    ".input-console-container textarea"
+  );
 
   mainExecuteBtn?.addEventListener("click", () => {
     if (mainTextarea) {
-      handleAiQuery(mainTextarea.value);
+      handleAiQuery(mainTextarea.value, null);
     }
   });
 
   mainTextarea?.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      handleAiQuery(mainTextarea.value);
+
+      handleAiQuery(mainTextarea.value, null);
     }
   });
 
-  async function handleAiQuery(userQuery) {
+  // =========================================================
+  // 12. STREAMING OLLAMA RESPONSE
+  // =========================================================
+
+  async function readStreamingResponse(response, onText) {
+    if (!response.body) {
+      throw new Error(
+        "Streaming is not supported by this browser response."
+      );
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = "";
+    let completeText = "";
+    let finished = false;
+
+    function processLine(line) {
+      const trimmed = line.trim();
+
+      if (!trimmed) return;
+
+      let data;
+
+      try {
+        data = JSON.parse(trimmed);
+      } catch {
+        return;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const content = data.message?.content || "";
+
+      if (content) {
+        completeText += content;
+        onText(content, completeText);
+      }
+
+      if (data.done) {
+        finished = true;
+      }
+    }
+
+    try {
+      while (!finished) {
+        const { value, done } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, {
+          stream: true
+        });
+
+        const lines = buffer.split("\n");
+
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          processLine(line);
+
+          if (finished) break;
+        }
+      }
+
+      buffer += decoder.decode();
+
+      if (buffer.trim()) {
+        processLine(buffer);
+      }
+
+    } catch (error) {
+      try {
+        await reader.cancel();
+      } catch {
+        // Ignore reader cancellation errors.
+      }
+
+      throw error;
+    }
+
+    if (!completeText.trim()) {
+      throw new Error(
+        "Ollama returned an empty response."
+      );
+    }
+
+    return completeText.trim();
+  }
+
+  // =========================================================
+  // 13. MAIN AI REQUEST FUNCTION
+  // =========================================================
+
+  async function handleAiQuery(userQuery, domain = null) {
     const query = (userQuery || "").trim();
-    
+
     if (!query || isAiProcessing) return;
 
     isAiProcessing = true;
-    if (mainExecuteBtn) mainExecuteBtn.disabled = true;
-    if (mainTextarea) mainTextarea.value = "";
+
+    stopSpeech();
+
+    const avatar =
+      document.getElementById("avatarViewport");
+
+    avatar?.classList.add("speaking");
+
+    if (mainExecuteBtn) {
+      mainExecuteBtn.disabled = true;
+    }
+
+    if (activeWorkspaceButton) {
+      activeWorkspaceButton.disabled = true;
+    }
+
+    if (!domain && mainTextarea) {
+      mainTextarea.value = "";
+      mainTextarea.disabled = true;
+    }
 
     if (subtitleOutput) {
-      subtitleOutput.textContent = '"Processing request..."';
+      subtitleOutput.textContent =
+        "Selené is thinking...";
     }
 
-    conversationHistory.push({ role: "user", content: query });
+    const historyKey =
+      domain && conversationHistories[domain]
+        ? domain
+        : "general";
 
-  
-try {
-  const res = await fetch(OLLAMA_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: OLLAMA_MODEL,
-      messages: conversationHistory.slice(-6),
-      stream: false
-    })
-  });
+    const activeHistory =
+      conversationHistories[historyKey];
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Ollama HTTP ${res.status}: ${errorText}`);
-  }
+    // Keep a reference to the submitted message so that
+    // failed requests can be removed safely.
+    const userMessage = {
+      role: "user",
+      content: query
+    };
 
-  const data = await res.json();
-  const reply = data.message?.content?.trim();
+    activeHistory.push(userMessage);
 
-  if (!reply) {
-    throw new Error("Ollama returned an empty response.");
-  }
+    let assistantResponse = "";
 
-  conversationHistory.push({
-    role: "assistant",
-    content: reply
-  });
+    try {
+      const systemPrompt = buildSystemPrompt(domain);
 
-  if (subtitleOutput) {
-    subtitleOutput.textContent = reply;
-  }
+      // Only send recent messages to keep context manageable.
+      const messages = [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        ...activeHistory.slice(-8)
+      ];
 
+      const response = await fetch(OLLAMA_URL, {
+        method: "POST",
 
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-    } catch (err) {
-      console.error("AI Proxy communication failure:", err);
-      if (subtitleOutput) {
-        subtitleOutput.textContent = '"Network error. Please check your connection."';
+        body: JSON.stringify({
+          model: OLLAMA_MODEL,
+          messages,
+          stream: true,
+          keep_alive: KEEP_ALIVE,
+          options: AI_OPTIONS
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+
+        throw new Error(
+          `Ollama HTTP ${response.status}: ${errorText}`
+        );
       }
+
+      if (!response.body) {
+        throw new Error(
+          "Your browser does not support response streaming."
+        );
+      }
+
+      // Show the answer as it is generated.
+      assistantResponse = await readStreamingResponse(
+        response,
+        (newText, completeText) => {
+          if (subtitleOutput) {
+            subtitleOutput.textContent = completeText;
+          }
+        }
+      );
+
+      // Store the complete assistant response.
+      activeHistory.push({
+        role: "assistant",
+        content: assistantResponse
+      });
+
+      // Limit stored conversation history.
+      // This keeps the browser session from growing endlessly.
+      if (activeHistory.length > 24) {
+        activeHistory.splice(
+          0,
+          activeHistory.length - 24
+        );
+      }
+
+      if (subtitleOutput) {
+        subtitleOutput.textContent = assistantResponse;
+      }
+
+      // Update the translation output when applicable.
+      if (domain === "translation") {
+        const translationOutput =
+          document.querySelector(
+            "#visualDisplayPanel .highlight-box p"
+          );
+
+        if (translationOutput) {
+          translationOutput.textContent = assistantResponse;
+        }
+      }
+
+    } catch (error) {
+      console.error(
+        "Selené AI communication failure:",
+        error
+      );
+
+      // Remove the unanswered user message.
+      const messageIndex =
+        activeHistory.indexOf(userMessage);
+
+      if (messageIndex !== -1) {
+        activeHistory.splice(messageIndex, 1);
+      }
+
+      let friendlyError =
+        "I couldn't process that request. Please try again.";
+
+      if (
+        error instanceof TypeError ||
+        /failed to fetch|networkerror/i.test(error.message)
+      ) {
+        friendlyError =
+          "I cannot reach Ollama. Please make sure Ollama is running and your local connection is available.";
+      }
+
+      else if (/empty response/i.test(error.message)) {
+        friendlyError =
+          "Ollama returned an empty response. Please try asking again.";
+      }
+
+      else if (/HTTP 404/i.test(error.message)) {
+        friendlyError =
+          "The selected AI model could not be found. Check that qwen2.5:1.5b is installed in Ollama.";
+      }
+
+      else if (/HTTP 500/i.test(error.message)) {
+        friendlyError =
+          "Ollama encountered an internal error. Please check the Ollama server.";
+      }
+
+      else if (/HTTP 403|HTTP 401/i.test(error.message)) {
+        friendlyError =
+          "The local AI connection was rejected. Please check Ollama's access settings.";
+      }
+
+      if (subtitleOutput) {
+        subtitleOutput.textContent = friendlyError;
+      }
+
     } finally {
       isAiProcessing = false;
-      if (mainExecuteBtn) mainExecuteBtn.disabled = false;
+
+      if (mainExecuteBtn) {
+        mainExecuteBtn.disabled = false;
+      }
+
+      if (activeWorkspaceButton) {
+        activeWorkspaceButton.disabled = false;
+      }
+
+      if (mainTextarea) {
+        mainTextarea.disabled = false;
+      }
+
+      avatar?.classList.remove("speaking");
     }
   }
 
   // =========================================================
-  // 4. THREE.JS 3D AVATAR INITIALIZATION
+  // 14. THREE.JS 3D AVATAR INITIALIZATION
   // =========================================================
+
   const container =
     document.getElementById("avatarViewport");
 
@@ -804,6 +1557,7 @@ try {
       };
 
       resizeAvatar();
+
       window.addEventListener("resize", resizeAvatar);
 
       const loader = new THREE.GLTFLoader();
@@ -813,8 +1567,10 @@ try {
 
         (gltf) => {
           avatarModel = gltf.scene;
+
           avatarModel.position.set(0, -0.2, 0);
           avatarModel.scale.set(1, 1, 1);
+
           scene.add(avatarModel);
         },
 
@@ -828,7 +1584,9 @@ try {
 
           if (fallback) {
             fallback.hidden = false;
-            fallback.textContent = "AVATAR MODEL NOT FOUND";
+
+            fallback.textContent =
+              "AVATAR MODEL NOT FOUND";
           }
         }
       );
@@ -839,13 +1597,13 @@ try {
         requestAnimationFrame(animateAvatar);
 
         if (avatarModel) {
-          const t = clock.getElapsedTime();
+          const elapsedTime = clock.getElapsedTime();
 
           avatarModel.position.y =
-            -0.2 + Math.sin(t * 1.5) * 0.03;
+            -0.2 + Math.sin(elapsedTime * 1.5) * 0.03;
 
           avatarModel.rotation.y =
-            Math.sin(t * 0.5) * 0.05;
+            Math.sin(elapsedTime * 0.5) * 0.05;
         }
 
         renderer.render(scene, camera);
@@ -860,4 +1618,14 @@ try {
       );
     }
   }
+
+  // =========================================================
+  // 15. INITIAL SYSTEM GREETING
+  // =========================================================
+
+  if (subtitleOutput && !subtitleOutput.textContent.trim()) {
+    subtitleOutput.textContent =
+      '"Hello. I am Selené Vesperiine. Project J.A.C.E. 001 is online. What can I help you with today?"';
+  }
+
 });
