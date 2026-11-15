@@ -18,16 +18,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const KEEP_ALIVE = "10m";
 
-  // Optional external vision service.
-  // Leave empty until you have configured a secure backend.
-  // Never put a private API key in this public JavaScript file.
+  // External vision is disabled until a secure backend is configured.
+  // Never put private API keys in this public JavaScript file.
   const VISION_API_ENDPOINT = "";
 
-  // Tesseract.js runs OCR inside the browser.
   const TESSERACT_SCRIPT =
     "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
 
+  const MERMAID_SCRIPT =
+    "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+
   const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
+
+  const SUPPORTED_IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/bmp"
+  ];
 
   // =========================================================
   // 2. GLOBAL STATE
@@ -35,17 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentAiController = null;
   let isAiProcessing = false;
-  let currentDomain = null;
-
-  let activeWorkspaceButton = null;
-  let activeWorkspaceInput = null;
-  let activeWorkspaceStopButton = null;
-  let activeWorkspaceFile = null;
-
-  let mainStopButton = null;
-  let mainFile = null;
 
   let tesseractLoadingPromise = null;
+  let mermaidLoadingPromise = null;
+
+  let selectedAcademicImage = null;
+  let extractedImageText = "";
+  let academicImagePurpose = null;
+
+  // Each selected file must be explicitly confirmed.
+  const confirmedAcademicFiles = new WeakSet();
 
   const conversationHistories = {
     general: [],
@@ -78,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     let bubbles = [];
+    let animationFrame = null;
 
     function resizeCanvas() {
       const ratio = Math.min(
@@ -170,7 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
         bubble.draw();
       });
 
-      requestAnimationFrame(animateBubbles);
+      animationFrame =
+        requestAnimationFrame(animateBubbles);
     }
 
     resizeCanvas();
@@ -204,7 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
           output.value = input.value;
         }
 
-        if (key === "count") resetBubbles();
+        if (key === "count") {
+          resetBubbles();
+        }
 
         if (key === "maxSpeed") {
           bubbles.forEach((bubble) => bubble.setSpeed());
@@ -227,8 +238,13 @@ document.addEventListener("DOMContentLoaded", () => {
           const input = document.getElementById(id);
           const output = document.getElementById(outputId);
 
-          if (input) input.value = defaults[key];
-          if (output) output.value = defaults[key];
+          if (input) {
+            input.value = defaults[key];
+          }
+
+          if (output) {
+            output.value = defaults[key];
+          }
         });
 
         resetBubbles();
@@ -240,14 +256,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================
 
   const fxPanel = document.getElementById("fxPanel");
-
   const toggleFxBtn =
     document.getElementById("toggleFxPanelBtn");
 
   toggleFxBtn?.addEventListener("click", () => {
     if (!fxPanel) return;
 
-    const isHidden = fxPanel.classList.toggle("hidden");
+    const isHidden =
+      fxPanel.classList.toggle("hidden");
 
     toggleFxBtn.setAttribute(
       "aria-expanded",
@@ -263,49 +279,57 @@ document.addEventListener("DOMContentLoaded", () => {
     mathematics: {
       title: "Mathematics Controller",
       subtitle: "Mathematics module selected.",
-      placeholder: "Enter an equation or mathematical question..."
+      placeholder:
+        "Enter an equation or mathematical question..."
     },
 
     quantum: {
       title: "Advanced Quantum Computing Engine",
       subtitle: "Quantum Computing module selected.",
-      placeholder: "Enter a quantum computing question..."
+      placeholder:
+        "Enter a quantum computing question..."
     },
 
     physics: {
       title: "Physics Mechanics & Dynamics Suite",
       subtitle: "Physics module selected.",
-      placeholder: "Enter a physics question..."
+      placeholder:
+        "Enter a physics question..."
     },
 
     chemistry: {
       title: "Chemistry Workspace",
       subtitle: "Chemistry module selected.",
-      placeholder: "Enter a chemical reaction, formula or question..."
+      placeholder:
+        "Enter a chemical reaction, formula or question..."
     },
 
     biology: {
       title: "Biology & Genetics Workspace",
       subtitle: "Biology module selected.",
-      placeholder: "Ask about cells, genetics or biology..."
+      placeholder:
+        "Ask about cells, genetics or biology..."
     },
 
     history: {
       title: "Historical Analysis Workspace",
       subtitle: "History module selected.",
-      placeholder: "Enter a historical event or question..."
+      placeholder:
+        "Enter a historical event or question..."
     },
 
     psychology: {
       title: "Psychology & Cognitive Science Workspace",
       subtitle: "Psychology module selected.",
-      placeholder: "Enter a psychological concept or question..."
+      placeholder:
+        "Enter a psychological concept or question..."
     },
 
     translation: {
       title: "Multilingual Translation Workspace",
       subtitle: "Translation module selected.",
-      placeholder: "Enter text to translate..."
+      placeholder:
+        "Enter text to translate..."
     }
   };
 
@@ -405,8 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function detectSubject(query) {
-    const text = query.toLowerCase();
-
+    const text = String(query || "").toLowerCase();
     const scores = {};
 
     for (const [domain, keywords] of Object.entries(subjectKeywords)) {
@@ -424,28 +447,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const sorted = Object.entries(scores)
       .sort((a, b) => b[1] - a[1]);
 
-    return sorted[0][1] > 0
+    return sorted[0]?.[1] > 0
       ? sorted[0][0]
       : "general";
   }
-    // =========================================================
+
+  // =========================================================
   // 7. SPECIALIST ACADEMIC INSTRUCTIONS
   // =========================================================
 
   const subjectInstructions = {
     general: `
 IDENTITY:
-You are Selené Vesperiine, the academic and research intelligence
-of Project J.A.C.E. 001, created by SVS.
+You are Selené Vesperiine, the academic and research
+intelligence of Project J.A.C.E. 001, created by SVS.
 
 PURPOSE:
 - You exist exclusively for academic and research purposes.
-- You are not a social chatbot, companion, entertainment system,
+- You are not a social chatbot, entertainment system,
   or general-purpose personal assistant.
-- Do not engage in casual or friendly conversations.
-- Do not provide unrelated real-time services.
-- Your identity knowledge is limited to your name, project
-  purpose, and creator SVS.
+- Do not engage in unrelated casual conversations.
+- Your identity knowledge is limited to your name,
+  project purpose, and creator SVS.
 - Do not invent personal or project details.
 
 ACADEMIC RESPONSIBILITIES:
@@ -456,45 +479,34 @@ ACADEMIC RESPONSIBILITIES:
 - Acknowledge uncertainty when information is insufficient.
 
 ANSWER FORMAT:
-- Begin with the direct answer or the method.
+- Begin with the direct answer or method.
 - Explain each distinct step on a separate line.
-- Use numbered steps for calculations, procedures and derivations.
+- Use numbered steps for calculations and procedures.
 - Define technical terms when necessary.
 - Use readable equations, units and tables where appropriate.
 - Do not combine several reasoning steps into one paragraph.
 - End with a clear conclusion when appropriate.
 - Avoid unnecessary greetings, filler and repetition.
 
-VERIFICATION:
-- Check calculations, units, signs and assumptions.
-- Verify conclusions using an appropriate method.
-- Do not claim a result has been independently verified unless
-  you have actually checked it.
-- If a question is ambiguous, state your assumption or ask
-  one necessary clarification.
-
 SUBJECT ROUTING:
 - Detect the academic subject in General Academic mode.
-- Apply the appropriate specialist instructions.
+- Apply appropriate specialist instructions.
 - In a dedicated module, remain focused on that subject.
-- If a question belongs to another module, recommend switching.
-- Do not silently change modules or discard context.
-- Cross-disciplinary academic questions may be answered
-  using the relevant disciplines together.
+- Cross-disciplinary academic questions may use
+  more than one relevant discipline.
 
 OUTPUT:
-- Use text-only responses.
-- Equations, tables and mathematical notation are permitted.
+- Use text, mathematical notation, tables and diagrams.
 - Do not claim to generate images, audio or video.
+- When a diagram is requested, follow the diagram instructions.
 `,
 
     mathematics: `
 ACTIVE SPECIALIST: MATHEMATICS
 
 SCOPE:
-Your mathematical knowledge must extend from foundational
-arithmetic to advanced university and research-level mathematics.
-Do not restrict yourself to a particular grade or curriculum.
+From foundational arithmetic to advanced university
+and research-level mathematics.
 
 AREAS:
 - Arithmetic, number systems, fractions, ratios and percentages.
@@ -525,7 +537,7 @@ PROBLEM-SOLVING METHOD:
 8. Verify the result.
 9. Present the final answer clearly.
 
-MATHEMATICAL RULES:
+RULES:
 - Use correct mathematical notation.
 - Define symbols where necessary.
 - Preserve exact values until approximation is appropriate.
@@ -533,16 +545,8 @@ MATHEMATICAL RULES:
 - Do not skip essential algebraic steps.
 - Do not invent a theorem, identity or formula.
 - For proofs, establish each logical inference.
-- For advanced mathematics, maintain mathematical rigour.
-- For numerical answers, state appropriate precision.
-- For graphs, explain axes, coordinates and important features
-  in text rather than generating an image.
-
-EXPLANATION:
-- Make foundational concepts understandable.
-- Do not oversimplify advanced problems.
-- Adapt depth to the actual mathematical problem.
-- Explain why a method works when that understanding matters.
+- For graphs, use an appropriate graph representation
+  when requested.
 `,
 
     quantum: `
@@ -567,7 +571,6 @@ METHOD:
 - Calculate measurement probabilities.
 - Check state normalisation.
 - Distinguish ideal models from physical implementations.
-- Explain assumptions and limitations.
 
 RULES:
 - Do not claim quantum advantage without a valid comparison.
@@ -684,12 +687,12 @@ METHOD:
 - Explain political, social, economic and cultural factors.
 - Compare historical interpretations when appropriate.
 - Distinguish primary and secondary sources.
-- Identify uncertainty and limitations in historical evidence.
+- Identify uncertainty and limitations in evidence.
 
 RULES:
 - Do not invent dates, events, quotations or sources.
 - Avoid presenting interpretations as universally accepted facts.
-- Explain historical developments in chronological order.
+- Explain historical developments chronologically.
 - Support conclusions with relevant evidence.
 `,
 
@@ -718,7 +721,7 @@ METHOD:
 
 RULES:
 - Do not diagnose individuals.
-- Do not treat a theory as an established fact without evidence.
+- Do not treat a theory as established fact without evidence.
 - Distinguish correlation from causation.
 - Explain technical terminology clearly.
 `,
@@ -727,7 +730,7 @@ RULES:
 ACTIVE SPECIALIST: ACADEMIC TRANSLATION
 
 PURPOSE:
-Translate supplied text accurately while preserving its meaning.
+Translate supplied text accurately while preserving meaning.
 
 METHOD:
 - Identify the source language when possible.
@@ -769,20 +772,10 @@ UNIVERSAL RESPONSE STANDARD:
 - Stay within the academic and research purpose of J.A.C.E. 001.
 `;
   }
-    // =========================================================
-  // 9. ACADEMIC IMAGE AND DIAGRAM SYSTEM
+
   // =========================================================
-
-  const academicImageTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/bmp"
-  ];
-
-  let selectedAcademicImage = null;
-  let extractedImageText = "";
-  let academicImagePurpose = null;
+  // 9. ACADEMIC IMAGE SYSTEM
+  // =========================================================
 
   const academicImagePurposes = {
     question: "question",
@@ -794,7 +787,7 @@ UNIVERSAL RESPONSE STANDARD:
   };
 
   // =========================================================
-  // 10. IDENTIFY THE PURPOSE OF AN UPLOADED IMAGE
+  // 10. IMAGE PURPOSE DETECTION
   // =========================================================
 
   function identifyAcademicImagePurpose(text) {
@@ -819,7 +812,7 @@ UNIVERSAL RESPONSE STANDARD:
     }
 
     if (
-      /\b(explain this diagram|analyse this diagram|what is shown)\b/.test(value)
+      /\b(explain this diagram|analyse this diagram|analyze this diagram|what is shown)\b/.test(value)
     ) {
       return "diagram";
     }
@@ -828,13 +821,16 @@ UNIVERSAL RESPONSE STANDARD:
   }
 
   // =========================================================
-  // 11. VALIDATE ACADEMIC IMAGE UPLOAD
+  // 11. IMAGE VALIDATION AND CONFIRMATION
   // =========================================================
 
   function isSupportedAcademicImage(file) {
-    if (!file) return false;
+    if (!file) {
+      alert("Please select an image first.");
+      return false;
+    }
 
-    if (!academicImageTypes.includes(file.type)) {
+    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
       alert(
         "Unsupported file format. Upload JPG, PNG, WEBP or BMP."
       );
@@ -873,6 +869,8 @@ UNIVERSAL RESPONSE STANDARD:
       return false;
     }
 
+    confirmedAcademicFiles.add(file);
+
     selectedAcademicImage = file;
     extractedImageText = "";
     academicImagePurpose = "academic material";
@@ -881,7 +879,7 @@ UNIVERSAL RESPONSE STANDARD:
   }
 
   // =========================================================
-  // 12. LOAD LOCAL OCR ENGINE
+  // 12. LOAD OCR ENGINE
   // =========================================================
 
   function loadTesseract() {
@@ -904,6 +902,8 @@ UNIVERSAL RESPONSE STANDARD:
           if (window.Tesseract) {
             resolve(window.Tesseract);
           } else {
+            tesseractLoadingPromise = null;
+
             reject(
               new Error("OCR engine failed to initialise.")
             );
@@ -911,6 +911,8 @@ UNIVERSAL RESPONSE STANDARD:
         };
 
         script.onerror = () => {
+          tesseractLoadingPromise = null;
+
           reject(
             new Error("Unable to load the OCR engine.")
           );
@@ -924,7 +926,7 @@ UNIVERSAL RESPONSE STANDARD:
   }
 
   // =========================================================
-  // 13. EXTRACT TEXT FROM UPLOADED IMAGE
+  // 13. EXTRACT TEXT FROM IMAGE
   // =========================================================
 
   async function extractAcademicImageText(file) {
@@ -949,7 +951,8 @@ UNIVERSAL RESPONSE STANDARD:
       }
     );
 
-    const text = result?.data?.text?.trim() || "";
+    const text =
+      result?.data?.text?.trim() || "";
 
     extractedImageText = text;
 
@@ -957,17 +960,17 @@ UNIVERSAL RESPONSE STANDARD:
   }
 
   // =========================================================
-  // 14. STUDENT ANSWER EVALUATION
+  // 14. UPLOADED STUDENT ANSWER EVALUATION
   // =========================================================
 
   function buildAnswerEvaluationPrompt(extractedText) {
     return `
 STUDENT ANSWER EVALUATION MODE
 
-The uploaded material contains a student's attempted answer
-or academic solution.
+The uploaded academic material appears to contain a student's
+attempted answer or academic solution.
 
-Evaluate the work carefully and objectively.
+Evaluate the readable work carefully and objectively.
 
 EVALUATION REQUIREMENTS:
 
@@ -1041,6 +1044,7 @@ Never invent a marking scheme.
 OCR LIMITATION:
 The extracted text may contain recognition errors.
 Do not silently assume uncertain symbols or words are correct.
+If a symbol is ambiguous, identify it as uncertain.
 
 UPLOADED MATERIAL:
 
@@ -1085,7 +1089,7 @@ ${extractedText}
   }
 
   // =========================================================
-  // 16. ACADEMIC IMAGE CONTEXT BUILDER
+  // 16. ACADEMIC IMAGE CONTEXT
   // =========================================================
 
   function buildAcademicImageContext(
@@ -1104,7 +1108,7 @@ ${extractedText}
   }
 
   // =========================================================
-  // 17. ACADEMIC DIAGRAM REQUEST DETECTION
+  // 17. DIAGRAM REQUEST DETECTION
   // =========================================================
 
   function isAcademicDiagramRequest(query) {
@@ -1121,10 +1125,17 @@ ${extractedText}
       "plot a graph",
       "plot the graph",
       "draw a circuit",
+      "circuit diagram",
       "flowchart",
       "schematic diagram",
       "structure of",
-      "illustrate"
+      "illustrate",
+      "show the structure",
+      "draw the structure",
+      "draw and label",
+      "label the diagram",
+      "graph of",
+      "plot"
     ];
 
     return diagramTerms.some((term) =>
@@ -1133,81 +1144,487 @@ ${extractedText}
   }
 
   // =========================================================
-  // 18. ACADEMIC TEXT-BASED DIAGRAM INSTRUCTIONS
+  // 18. DIAGRAM TYPE DETECTION
+  // =========================================================
+
+  function detectDiagramType(query) {
+    const text = String(query || "").toLowerCase();
+
+    if (
+      /\b(graph|plot|coordinate|parabola|curve|function)\b/.test(text)
+    ) {
+      return "graph";
+    }
+
+    if (
+      /\b(flowchart|process|cycle|sequence|steps|pathway)\b/.test(text)
+    ) {
+      return "flowchart";
+    }
+
+    if (
+      /\b(circuit|electrical circuit|logic gate|quantum circuit)\b/.test(text)
+    ) {
+      return "circuit";
+    }
+
+    if (
+      /\b(mind map|concept map|relationship|classification|hierarchy)\b/.test(text)
+    ) {
+      return "concept";
+    }
+
+    return "scientific";
+  }
+
+  // =========================================================
+  // 19. DIAGRAM GENERATION INSTRUCTIONS
   // =========================================================
 
   function buildAcademicDiagramPrompt(query) {
+    const type = detectDiagramType(query);
+
+    let formatInstructions = "";
+
+    if (type === "flowchart") {
+      formatInstructions = `
+Use Mermaid flowchart syntax.
+
+Start with:
+\`\`\`mermaid
+flowchart TD
+
+Use:
+- Rectangles for processes.
+- Diamonds for decisions.
+- Arrows for direction.
+- Clear labels.
+- A logical sequence.
+
+End the diagram with:
+\`\`\`
+`;
+    } else if (type === "concept") {
+      formatInstructions = `
+Use Mermaid flowchart or graph syntax.
+
+Show:
+- The main concept.
+- Related concepts.
+- Correct relationships.
+- Clear labels and connections.
+
+Use a suitable Mermaid direction such as TD or LR.
+`;
+    } else if (type === "circuit") {
+      formatInstructions = `
+Use a clear structured text circuit representation.
+
+If a flow relationship is useful, use Mermaid flowchart syntax.
+Do not invent electrical connections or circuit values.
+
+For logic circuits, label inputs, gates and outputs.
+For quantum circuits, identify the qubits and gates in order.
+`;
+    } else if (type === "graph") {
+      formatInstructions = `
+For a mathematical graph:
+- State the function or relationship.
+- Identify the x-axis and y-axis.
+- State important coordinates.
+- Identify intercepts, turning points and asymptotes where relevant.
+- Explain the graph's shape.
+
+Use Mermaid only if it is appropriate for the requested
+relationship. Do not use a flowchart as a substitute
+for a mathematical coordinate graph.
+If a true plotted graph is required, provide the data points,
+equation and plotting instructions clearly.
+`;
+    } else {
+      formatInstructions = `
+Choose the most appropriate representation.
+
+For a process or relationship, use Mermaid.
+For a biological or anatomical structure, use a labelled
+structured text diagram with correct parts and labels.
+
+Do not pretend that a text outline is a visual scientific
+illustration. Clearly distinguish a schematic from a
+scale-accurate scientific drawing.
+`;
+    }
+
     return `
 ACADEMIC DIAGRAM GENERATION MODE
 
-The user has requested an academic diagram or graph.
+The user has requested a diagram or graph.
 
-Create the most suitable academic representation of the
-requested concept.
+USER REQUEST:
+${query}
+
+DIAGRAM TYPE:
+${type}
 
 REQUIREMENTS:
 
-1. Make the diagram scientifically and academically accurate.
-
+1. Make the representation scientifically and academically accurate.
 2. Include relevant labels and terminology.
-
-3. Maintain correct relationships, directions and proportions
-   wherever they matter.
-
+3. Maintain correct relationships and directions.
 4. Use clear titles and organised sections.
+5. Do not invent experimental data or measurements.
+6. State assumptions when essential information is missing.
+7. Do not provide a generic explanation instead of the requested
+   diagram.
+8. Do not place unrelated commentary inside the diagram code.
 
-5. For graphs, identify:
-   - X-axis
-   - Y-axis
-   - Axis labels
-   - Units
-   - Important points
-   - Scale, where applicable
+OUTPUT REQUIREMENTS:
 
-6. For flowcharts, use a logical sequence and clear arrows.
+${formatInstructions}
 
-7. For scientific diagrams, include the important structures
-   and their correct labels.
+When using Mermaid:
+- Return a complete Mermaid code block.
+- Do not place explanatory prose inside the code block.
+- Use valid Mermaid syntax.
+- Ensure every node identifier is valid.
+- Ensure arrows and connections are correctly written.
+- Do not use unsupported styling or plugins.
+- Do not wrap Mermaid syntax in another code block.
 
-8. For mathematical diagrams, preserve mathematical accuracy.
-
-9. Do not invent experimental data or measurements.
-
-10. If essential information is missing, state the assumption.
-
-OUTPUT:
-Provide a clear, labelled academic diagram using the
-available text-based diagram format.
-
-Use Mermaid syntax when a flowchart or relationship diagram
-is suitable. Use mathematical notation and structured text
-when those are more appropriate.
-
-USER REQUEST:
-
-${query}
+After the diagram, briefly explain its important labels
+if necessary.
 `;
   }
 
   // =========================================================
-  // 19. ACADEMIC IMAGE PROCESSING
+  // 20. LOAD MERMAID DIAGRAM ENGINE
   // =========================================================
 
-  async function processAcademicImage(file, purpose = "question") {
+  function loadMermaid() {
+    if (window.mermaid) {
+      return Promise.resolve(window.mermaid);
+    }
+
+    if (mermaidLoadingPromise) {
+      return mermaidLoadingPromise;
+    }
+
+    mermaidLoadingPromise = new Promise(
+      (resolve, reject) => {
+        const script = document.createElement("script");
+
+        script.src = MERMAID_SCRIPT;
+        script.async = true;
+
+        script.onload = () => {
+          if (window.mermaid) {
+            window.mermaid.initialize({
+              startOnLoad: false,
+              securityLevel: "strict",
+              theme: "dark",
+              flowchart: {
+                useMaxWidth: true,
+                htmlLabels: false,
+                curve: "basis"
+              }
+            });
+
+            resolve(window.mermaid);
+          } else {
+            mermaidLoadingPromise = null;
+
+            reject(
+              new Error("Diagram engine failed to initialise.")
+            );
+          }
+        };
+
+        script.onerror = () => {
+          mermaidLoadingPromise = null;
+
+          reject(
+            new Error("Unable to load the diagram engine.")
+          );
+        };
+
+        document.head.appendChild(script);
+      }
+    );
+
+    return mermaidLoadingPromise;
+  }
+
+  // =========================================================
+  // 21. RENDER ACADEMIC DIAGRAM
+  // =========================================================
+
+  async function renderMermaidDiagrams(container) {
+    if (!container) return;
+
+    const codeBlocks = Array.from(
+      container.querySelectorAll("pre code")
+    );
+
+    const mermaidBlocks = codeBlocks.filter((block) => {
+      return (
+        block.classList.contains("language-mermaid") ||
+        block.classList.contains("mermaid")
+      );
+    });
+
+    if (!mermaidBlocks.length) return;
+
+    let mermaid;
+
+    try {
+      mermaid = await loadMermaid();
+    } catch (error) {
+      console.warn(
+        "[J.A.C.E. DIAGRAM]",
+        error
+      );
+
+      return;
+    }
+
+    for (const codeBlock of mermaidBlocks) {
+      const pre = codeBlock.closest("pre");
+
+      if (!pre) continue;
+
+      const diagramCode = codeBlock.textContent.trim();
+
+      if (!diagramCode) continue;
+
+      const diagramContainer =
+        document.createElement("div");
+
+      diagramContainer.className =
+        "jace-mermaid-container";
+
+      diagramContainer.style.width = "100%";
+      diagramContainer.style.overflowX = "auto";
+      diagramContainer.style.margin = "16px 0";
+      diagramContainer.style.padding = "12px";
+      diagramContainer.style.borderRadius = "12px";
+      diagramContainer.style.background =
+        "rgba(183, 139, 233, 0.07)";
+
+      const diagramId =
+        "jace-diagram-" +
+        Date.now() +
+        "-" +
+        Math.random().toString(36).slice(2, 9);
+
+      try {
+        const result = await mermaid.render(
+          diagramId,
+          diagramCode
+        );
+
+        diagramContainer.innerHTML = result.svg;
+
+        pre.replaceWith(diagramContainer);
+
+      } catch (error) {
+        console.warn(
+          "[J.A.C.E. DIAGRAM RENDER ERROR]",
+          error
+        );
+
+        diagramContainer.textContent =
+          "The diagram could not be rendered. " +
+          "The Mermaid syntax may be invalid. " +
+          "The original diagram code is shown below.";
+
+        const fallback = document.createElement("pre");
+        const fallbackCode = document.createElement("code");
+
+        fallbackCode.textContent = diagramCode;
+
+        fallback.appendChild(fallbackCode);
+        diagramContainer.appendChild(fallback);
+
+        pre.replaceWith(diagramContainer);
+      }
+    }
+  }
+
+  // =========================================================
+  // 22. SAFE RESPONSE DISPLAY
+  // =========================================================
+
+  function createResponseContent(text) {
+    const fragment = document.createDocumentFragment();
+
+    const lines = String(text || "").split("\n");
+
+    let normalLines = [];
+    let codeLanguage = null;
+    let codeLines = [];
+
+    function flushNormalLines() {
+      if (!normalLines.length) return;
+
+      const paragraph = document.createElement("div");
+
+      paragraph.className = "jace-response-text";
+      paragraph.style.whiteSpace = "pre-wrap";
+      paragraph.textContent = normalLines.join("\n");
+
+      fragment.appendChild(paragraph);
+
+      normalLines = [];
+    }
+
+    function flushCodeBlock() {
+      const pre = document.createElement("pre");
+      const code = document.createElement("code");
+
+      pre.className = "jace-code-block";
+
+      if (codeLanguage) {
+        code.className = `language-${codeLanguage}`;
+      }
+
+      pre.style.overflowX = "auto";
+      pre.style.whiteSpace = "pre";
+      pre.style.padding = "12px";
+      pre.style.borderRadius = "8px";
+
+      code.textContent = codeLines.join("\n");
+
+      pre.appendChild(code);
+      fragment.appendChild(pre);
+
+      codeLanguage = null;
+      codeLines = [];
+    }
+
+    for (const line of lines) {
+      const fenceMatch =
+        line.match(/^```([a-zA-Z0-9_-]*)\s*$/);
+
+      if (!codeLanguage && fenceMatch) {
+        flushNormalLines();
+
+        codeLanguage =
+          fenceMatch[1].toLowerCase() || "text";
+
+        codeLines = [];
+        continue;
+      }
+
+      if (codeLanguage && line.trim() === "```") {
+        flushCodeBlock();
+        continue;
+      }
+
+      if (codeLanguage) {
+        codeLines.push(line);
+      } else {
+        normalLines.push(line);
+      }
+    }
+
+    if (codeLanguage) {
+      flushCodeBlock();
+    }
+
+    flushNormalLines();
+
+    return fragment;
+  }
+
+  async function displayJaceOutput(
+    text,
+    options = {}
+  ) {
+    const output =
+      document.getElementById("subtitleOutput") ||
+      document.querySelector(".subtitle-output");
+
+    if (!output) {
+      console.log("[J.A.C.E. OUTPUT]", text);
+      return;
+    }
+
+    if (options.render === false) {
+      output.textContent = text;
+      return;
+    }
+
+    output.replaceChildren(
+      createResponseContent(text)
+    );
+
+    // Render Mermaid diagrams if present.
+    await renderMermaidDiagrams(output);
+
+    // Render mathematical expressions if KaTeX is available.
+    if (
+      window.renderMathInElement &&
+      typeof window.renderMathInElement === "function"
+    ) {
+      try {
+        window.renderMathInElement(output, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "\\[", right: "\\]", display: true },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "$", right: "$", display: false }
+          ],
+          throwOnError: false
+        });
+      } catch (error) {
+        console.warn(
+          "[J.A.C.E. MATH RENDER]",
+          error
+        );
+      }
+    }
+  }
+
+  function appendJaceOutput(text) {
+    const output =
+      document.getElementById("subtitleOutput") ||
+      document.querySelector(".subtitle-output");
+
+    if (!output) return;
+
+    output.appendChild(
+      document.createTextNode(text)
+    );
+  }
+
+  // =========================================================
+  // 23. ACADEMIC IMAGE PROCESSING
+  // =========================================================
+
+  async function processAcademicImage(
+    file,
+    purpose = "question"
+  ) {
     if (!file) {
       throw new Error("No image was selected.");
     }
 
-    if (!selectedAcademicImage) {
+    if (!confirmedAcademicFiles.has(file)) {
       throw new Error(
         "Please confirm the academic purpose of the image."
       );
     }
 
-    academicImagePurpose =
-      academicImagePurposes[purpose] || "academic material";
+    if (!isSupportedAcademicImage(file)) {
+      throw new Error("Unsupported image.");
+    }
 
-    const text = await extractAcademicImageText(file);
+    academicImagePurpose =
+      academicImagePurposes[purpose] ||
+      "academic material";
+
+    const text =
+      await extractAcademicImageText(file);
 
     if (!text) {
       return {
@@ -1216,16 +1633,20 @@ ${query}
         text: "",
         context: "",
         message:
-          "No readable text was extracted. " +
-          "The image may require visual interpretation."
+          "No readable text could be extracted from this image.\n\n" +
+          "J.A.C.E. currently uses local OCR for uploaded images. " +
+          "It cannot independently interpret visual structures, " +
+          "handwritten diagrams or non-textual image details.\n\n" +
+          "Try uploading a clearer image, cropping the relevant " +
+          "text, or typing the question."
       };
     }
 
     return {
       success: true,
       method: "local-ocr",
-      purpose: purpose,
-      text: text,
+      purpose,
+      text,
       context: buildAcademicImageContext(
         text,
         purpose
@@ -1234,7 +1655,7 @@ ${query}
   }
 
   // =========================================================
-  // 20. OPTIONAL EXTERNAL VISION CONSENT
+  // 24. OPTIONAL EXTERNAL VISION CONSENT
   // =========================================================
 
   async function requestExternalVisionConsent() {
@@ -1251,7 +1672,7 @@ ${query}
   }
 
   // =========================================================
-  // 21. IMAGE STATE RESET
+  // 25. IMAGE STATE RESET
   // =========================================================
 
   function clearAcademicImageState() {
@@ -1261,7 +1682,7 @@ ${query}
   }
 
   // =========================================================
-  // 22. ACADEMIC INPUT CLASSIFICATION
+  // 26. REQUEST CLASSIFICATION
   // =========================================================
 
   function classifyAcademicInput(query) {
@@ -1271,67 +1692,14 @@ ${query}
       return "diagram";
     }
 
-    if (
-      /\b(check|evaluate|correct|mark|review)\b/.test(text) &&
-      /\b(answer|solution|working|response)\b/.test(text)
-    ) {
-      return "answer-evaluation";
-    }
-
     return "academic-question";
   }
-    // =========================================================
-  // 23. EVALUATION SYSTEM
-  // =========================================================
-
-  const JACE_EVALUATION = {
-    enabled: true,
-
-    criteria: {
-      accuracy: {
-        label: "Accuracy",
-        weight: 25
-      },
-
-      relevance: {
-        label: "Relevance",
-        weight: 15
-      },
-
-      subjectKnowledge: {
-        label: "Subject knowledge",
-        weight: 20
-      },
-
-      clarity: {
-        label: "Step-by-step clarity",
-        weight: 15
-      },
-
-      completeness: {
-        label: "Completeness",
-        weight: 10
-      },
-
-      instructionFollowing: {
-        label: "Instruction following",
-        weight: 10
-      },
-
-      reliability: {
-        label: "Reliability",
-        weight: 5
-      }
-    },
-
-    minimumAcceptableScore: 75
-  };
 
   // =========================================================
-  // 24. RESPONSE PERFORMANCE TRACKER
+  // 27. PERFORMANCE TRACKING
   // =========================================================
 
-  let jacePerformance = {
+  const jacePerformance = {
     requestStartedAt: 0,
     firstTokenAt: 0,
     responseFinishedAt: 0,
@@ -1349,11 +1717,13 @@ ${query}
     tokensPerSecond: 0,
 
     requestCount: 0,
-    failedRequests: 0
+    failedRequests: 0,
+    abortedRequests: 0
   };
 
   function startJacePerformanceTracking() {
-    jacePerformance.requestStartedAt = performance.now();
+    jacePerformance.requestStartedAt =
+      performance.now();
 
     jacePerformance.firstTokenAt = 0;
     jacePerformance.responseFinishedAt = 0;
@@ -1373,7 +1743,8 @@ ${query}
 
   function recordJaceFirstToken() {
     if (!jacePerformance.firstTokenAt) {
-      jacePerformance.firstTokenAt = performance.now();
+      jacePerformance.firstTokenAt =
+        performance.now();
 
       jacePerformance.timeToFirstToken =
         jacePerformance.firstTokenAt -
@@ -1382,7 +1753,8 @@ ${query}
   }
 
   function finishJacePerformanceTracking(ollamaData = {}) {
-    jacePerformance.responseFinishedAt = performance.now();
+    jacePerformance.responseFinishedAt =
+      performance.now();
 
     jacePerformance.totalResponseTime =
       jacePerformance.responseFinishedAt -
@@ -1421,8 +1793,12 @@ ${query}
     jacePerformance.failedRequests++;
   }
 
+  function recordJaceAbortedRequest() {
+    jacePerformance.abortedRequests++;
+  }
+
   // =========================================================
-  // 25. PERFORMANCE REPORT
+  // 28. PERFORMANCE REPORT
   // =========================================================
 
   function getJacePerformanceReport() {
@@ -1459,13 +1835,12 @@ ${query}
         jacePerformance.requestCount,
 
       failedRequests:
-        jacePerformance.failedRequests
+        jacePerformance.failedRequests,
+
+      abortedRequests:
+        jacePerformance.abortedRequests
     };
   }
-
-  // =========================================================
-  // 26. PERFORMANCE DISPLAY
-  // =========================================================
 
   function formatJacePerformanceReport(report) {
     return `
@@ -1500,409 +1875,14 @@ ${report.completedRequests}
 
 Failed requests:
 ${report.failedRequests}
+
+Aborted requests:
+${report.abortedRequests}
 `;
   }
 
   // =========================================================
-  // 27. RESPONSE QUALITY EVALUATION
-  // =========================================================
-
-  function buildResponseEvaluationPrompt(
-    question,
-    answer,
-    domain = "general"
-  ) {
-    return `
-J.A.C.E. 001 — RESPONSE QUALITY EVALUATION
-
-You are evaluating an academic AI response.
-
-SUBJECT:
-${domain}
-
-ORIGINAL QUESTION:
-${question}
-
-GENERATED RESPONSE:
-${answer}
-
-Evaluate the response using these criteria:
-
-1. ACCURACY — 25 points
-Check whether the information, equations, calculations,
-facts and explanations are correct.
-
-2. RELEVANCE — 15 points
-Check whether the response answers the actual question.
-
-3. SUBJECT KNOWLEDGE — 20 points
-Check whether the response demonstrates appropriate
-subject-specific understanding.
-
-4. CLARITY — 15 points
-Check whether the explanation is understandable and
-organised into logical steps.
-
-5. COMPLETENESS — 10 points
-Check whether important parts of the question have
-been addressed.
-
-6. INSTRUCTION FOLLOWING — 10 points
-Check whether the response follows the user's instructions.
-
-7. RELIABILITY — 5 points
-Check whether uncertainty, assumptions and limitations
-are handled honestly.
-
-IMPORTANT:
-
-- Do not award points simply because an answer sounds confident.
-- Verify calculations and factual claims.
-- Do not invent sources or evidence.
-- Identify unsupported claims.
-- Do not assume that a long answer is a good answer.
-- Do not assume that a short answer is a bad answer.
-- If the available information is insufficient to verify a claim,
-  say so explicitly.
-
-OUTPUT FORMAT:
-
-Criterion-wise assessment:
-Give a score for each criterion.
-
-Total score:
-Give a score out of 100.
-
-Strengths:
-List the strongest aspects.
-
-Weaknesses:
-Identify specific problems.
-
-Required improvements:
-Explain what must be corrected.
-
-Final verdict:
-State whether the response meets the expected standard.
-
-This evaluation must be honest and evidence-based.
-`;
-  }
-
-  // =========================================================
-  // 28. EVALUATION RECORDS
-  // =========================================================
-
-  const jaceEvaluationRecords = [];
-
-  function saveJaceEvaluation(record) {
-    if (!record || typeof record !== "object") {
-      return;
-    }
-
-    const evaluationRecord = {
-      timestamp: new Date().toISOString(),
-
-      subject: record.subject || "general",
-
-      question: record.question || "",
-
-      answer: record.answer || "",
-
-      score: Number.isFinite(Number(record.score))
-        ? Number(record.score)
-        : null,
-
-      accuracy: record.accuracy ?? null,
-
-      relevance: record.relevance ?? null,
-
-      subjectKnowledge: record.subjectKnowledge ?? null,
-
-      clarity: record.clarity ?? null,
-
-      completeness: record.completeness ?? null,
-
-      instructionFollowing:
-        record.instructionFollowing ?? null,
-
-      reliability: record.reliability ?? null,
-
-      notes: record.notes || ""
-    };
-
-    jaceEvaluationRecords.push(evaluationRecord);
-
-    return evaluationRecord;
-  }
-
-  // =========================================================
-  // 29. EVALUATION SUMMARY
-  // =========================================================
-
-  function getJaceEvaluationSummary() {
-    const total = jaceEvaluationRecords.length;
-
-    if (total === 0) {
-      return {
-        totalEvaluations: 0,
-        averageScore: null,
-        passingEvaluations: 0,
-        failingEvaluations: 0,
-        message: "No evaluation records are available."
-      };
-    }
-
-    const scoredRecords = jaceEvaluationRecords.filter(
-      record => Number.isFinite(record.score)
-    );
-
-    const averageScore = scoredRecords.length
-      ? scoredRecords.reduce(
-          (sum, record) => sum + record.score,
-          0
-        ) / scoredRecords.length
-      : null;
-
-    const passing = scoredRecords.filter(
-      record =>
-        record.score >= JACE_EVALUATION.minimumAcceptableScore
-    ).length;
-
-    return {
-      totalEvaluations: total,
-
-      averageScore: averageScore === null
-        ? null
-        : Number(averageScore.toFixed(2)),
-
-      passingEvaluations: passing,
-
-      failingEvaluations:
-        scoredRecords.length - passing,
-
-      message:
-        averageScore === null
-          ? "Evaluations have not received numerical scores."
-          : averageScore >=
-            JACE_EVALUATION.minimumAcceptableScore
-            ? "The average score meets the target."
-            : "The average score is below the target."
-    };
-  }
-
-  // =========================================================
-  // 30. ACADEMIC BENCHMARK QUESTIONS
-  // =========================================================
-
-  const JACE_BENCHMARKS = {
-    mathematics: [
-      {
-        id: "MATH-001",
-        question:
-          "Solve 2x + 5 = 17 and explain every step.",
-        expectedSkills: [
-          "algebra",
-          "equation solving",
-          "stepwise reasoning"
-        ]
-      },
-      {
-        id: "MATH-002",
-        question:
-          "Differentiate x^3 + 4x^2 - 7x + 2.",
-        expectedSkills: [
-          "calculus",
-          "power rule",
-          "symbolic accuracy"
-        ]
-      }
-    ],
-
-    quantum: [
-      {
-        id: "QUANTUM-001",
-        question:
-          "Explain the physical meaning of a wave function.",
-        expectedSkills: [
-          "quantum mechanics",
-          "probability interpretation",
-          "conceptual clarity"
-        ]
-      }
-    ],
-
-    physics: [
-      {
-        id: "PHYSICS-001",
-        question:
-          "Explain Newton's second law and solve a basic force problem.",
-        expectedSkills: [
-          "mechanics",
-          "formula application",
-          "units"
-        ]
-      }
-    ],
-
-    chemistry: [
-      {
-        id: "CHEM-001",
-        question:
-          "Explain covalent bonding and distinguish it from ionic bonding.",
-        expectedSkills: [
-          "chemical bonding",
-          "electron sharing",
-          "conceptual comparison"
-        ]
-      }
-    ],
-
-    biology: [
-      {
-        id: "BIO-001",
-        question:
-          "Explain the process of photosynthesis and its importance.",
-        expectedSkills: [
-          "biological processes",
-          "scientific terminology",
-          "sequence"
-        ]
-      }
-    ],
-
-    history: [
-      {
-        id: "HISTORY-001",
-        question:
-          "Explain the major causes and consequences of the French Revolution.",
-        expectedSkills: [
-          "historical accuracy",
-          "causal analysis",
-          "chronology"
-        ]
-      }
-    ],
-
-    psychology: [
-      {
-        id: "PSYCH-001",
-        question:
-          "Explain classical conditioning with an appropriate example.",
-        expectedSkills: [
-          "psychological concepts",
-          "terminology",
-          "application"
-        ]
-      }
-    ],
-
-    translation: [
-      {
-        id: "TRANS-001",
-        question:
-          "Translate a short paragraph while preserving its original meaning and tone.",
-        expectedSkills: [
-          "meaning preservation",
-          "grammar",
-          "context"
-        ]
-      }
-    ]
-  };
-
-  // =========================================================
-  // 31. BENCHMARK ACCESS
-  // =========================================================
-
-  function getJaceBenchmarkQuestions(domain) {
-    const key = String(domain || "").toLowerCase();
-
-    return JACE_BENCHMARKS[key] || [];
-  }
-
-  function getAllJaceBenchmarkQuestions() {
-    return Object.entries(JACE_BENCHMARKS).flatMap(
-      ([subject, questions]) =>
-        questions.map(question => ({
-          ...question,
-          subject
-        }))
-    );
-  }
-
-  // =========================================================
-  // 32. EVALUATION STATUS
-  // =========================================================
-
-  function getJaceEvaluationStatus() {
-    const summary = getJaceEvaluationSummary();
-
-    return {
-      enabled: JACE_EVALUATION.enabled,
-
-      targetScore:
-        JACE_EVALUATION.minimumAcceptableScore,
-
-      totalBenchmarkQuestions:
-        getAllJaceBenchmarkQuestions().length,
-
-      totalEvaluationRecords:
-        summary.totalEvaluations,
-
-      averageScore:
-        summary.averageScore,
-
-      meetsTarget:
-        summary.averageScore !== null &&
-        summary.averageScore >=
-          JACE_EVALUATION.minimumAcceptableScore
-    };
-  }
-
-  // =========================================================
-  // 33. EXPORT EVALUATION DATA
-  // =========================================================
-
-  function exportJaceEvaluationData() {
-    const data = {
-      project: "J.A.C.E. 001",
-
-      evaluationDate: new Date().toISOString(),
-
-      performance: getJacePerformanceReport(),
-
-      evaluationSummary: getJaceEvaluationSummary(),
-
-      evaluationRecords: jaceEvaluationRecords,
-
-      benchmarks: JACE_BENCHMARKS
-    };
-
-    const blob = new Blob(
-      [JSON.stringify(data, null, 2)],
-      {
-        type: "application/json"
-      }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "JACE-001-Evaluation-Report.json";
-
-    document.body.appendChild(link);
-
-    link.click();
-
-    link.remove();
-
-    URL.revokeObjectURL(url);
-  }
-    // =========================================================
-  // 34. OLLAMA CONNECTION
+  // 29. OLLAMA CONNECTION
   // =========================================================
 
   async function checkOllamaConnection() {
@@ -1917,7 +1897,10 @@ This evaluation must be honest and evidence-based.
       if (!response.ok) {
         return {
           connected: false,
-          message: "Ollama is not responding correctly."
+          modelAvailable: false,
+          models: [],
+          message:
+            "Ollama is not responding correctly."
         };
       }
 
@@ -1943,7 +1926,10 @@ This evaluation must be honest and evidence-based.
       };
 
     } catch (error) {
-      console.error("[J.A.C.E. OLLAMA]", error);
+      console.error(
+        "[J.A.C.E. OLLAMA]",
+        error
+      );
 
       return {
         connected: false,
@@ -1956,7 +1942,7 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 35. PREPARE CONVERSATION HISTORY
+  // 30. CONVERSATION HISTORY
   // =========================================================
 
   function prepareJaceHistory(history = []) {
@@ -1976,8 +1962,40 @@ This evaluation must be honest and evidence-based.
       }));
   }
 
+  function getJaceActiveHistory(domain) {
+    const historyKey = domain || "general";
+
+    if (!conversationHistories[historyKey]) {
+      conversationHistories[historyKey] = [];
+    }
+
+    return conversationHistories[historyKey];
+  }
+
+  function addJaceHistoryMessage(domain, role, content) {
+    const history = getJaceActiveHistory(domain);
+
+    history.push({
+      role,
+      content
+    });
+
+    if (history.length > 24) {
+      history.splice(
+        0,
+        history.length - 24
+      );
+    }
+  }
+
+  function clearJaceConversation(domain) {
+    const historyKey = domain || "general";
+
+    conversationHistories[historyKey] = [];
+  }
+
   // =========================================================
-  // 36. BUILD OLLAMA REQUEST
+  // 31. BUILD OLLAMA REQUEST
   // =========================================================
 
   function buildJaceOllamaPayload({
@@ -1986,7 +2004,8 @@ This evaluation must be honest and evidence-based.
     history = [],
     imageContext = ""
   }) {
-    const systemPrompt = buildSystemPrompt(domain);
+    const systemPrompt =
+      buildSystemPrompt(domain);
 
     const userContent = imageContext
       ? `${question}\n\n${imageContext}`
@@ -2008,19 +2027,15 @@ This evaluation must be honest and evidence-based.
 
     return {
       model: OLLAMA_MODEL,
-
       messages,
-
       stream: true,
-
       keep_alive: KEEP_ALIVE,
-
       options: AI_OPTIONS
     };
   }
 
   // =========================================================
-  // 37. STREAM ACADEMIC RESPONSE
+  // 32. STREAM ACADEMIC RESPONSE
   // =========================================================
 
   async function generateJaceResponse({
@@ -2033,7 +2048,9 @@ This evaluation must be honest and evidence-based.
     onError = null
   }) {
     if (!question || !question.trim()) {
-      throw new Error("Please enter an academic question.");
+      throw new Error(
+        "Please enter an academic question."
+      );
     }
 
     if (isAiProcessing) {
@@ -2042,8 +2059,12 @@ This evaluation must be honest and evidence-based.
       );
     }
 
+    // An explicitly selected General mode should still
+    // detect the subject automatically.
     const detectedDomain =
-      domain || detectSubject(question) || "general";
+      !domain || domain === "general"
+        ? detectSubject(question)
+        : domain;
 
     const payload = buildJaceOllamaPayload({
       question,
@@ -2092,24 +2113,50 @@ This evaluation must be honest and evidence-based.
       }
 
       const reader = response.body.getReader();
-
       const decoder = new TextDecoder();
 
-      let streamFinished = false;
+      async function processStreamLine(line) {
+        if (!line.trim()) return;
 
-      while (!streamFinished) {
+        let chunk;
+
+        try {
+          chunk = JSON.parse(line);
+        } catch (error) {
+          console.warn(
+            "[J.A.C.E.] Ignoring an invalid stream chunk.",
+            error
+          );
+
+          return;
+        }
+
+        const token =
+          chunk.message?.content || "";
+
+        if (token) {
+          recordJaceFirstToken();
+
+          completeAnswer += token;
+
+          if (typeof onToken === "function") {
+            onToken(token, completeAnswer);
+          }
+        }
+
+        if (chunk.done) {
+          finalMetrics = chunk;
+        }
+      }
+
+      while (true) {
         const { value, done } = await reader.read();
 
-        if (done) {
-          streamFinished = true;
-          break;
-        }
+        if (done) break;
 
         streamBuffer += decoder.decode(
           value,
-          {
-            stream: true
-          }
+          { stream: true }
         );
 
         const lines = streamBuffer.split("\n");
@@ -2117,69 +2164,14 @@ This evaluation must be honest and evidence-based.
         streamBuffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (!line.trim()) continue;
-
-          let chunk;
-
-          try {
-            chunk = JSON.parse(line);
-          } catch (error) {
-            console.warn(
-              "[J.A.C.E.] Ignoring an invalid stream chunk.",
-              error
-            );
-
-            continue;
-          }
-
-          const token = chunk.message?.content || "";
-
-          if (token) {
-            recordJaceFirstToken();
-
-            completeAnswer += token;
-
-            if (typeof onToken === "function") {
-              onToken(token, completeAnswer);
-            }
-          }
-
-          if (chunk.done) {
-            finalMetrics = chunk;
-          }
+          await processStreamLine(line);
         }
       }
 
-      // Process any remaining stream data.
+      streamBuffer += decoder.decode();
+
       if (streamBuffer.trim()) {
-        try {
-          const finalChunk = JSON.parse(
-            streamBuffer.trim()
-          );
-
-          const token =
-            finalChunk.message?.content || "";
-
-          if (token) {
-            recordJaceFirstToken();
-
-            completeAnswer += token;
-
-            if (typeof onToken === "function") {
-              onToken(token, completeAnswer);
-            }
-          }
-
-          if (finalChunk.done) {
-            finalMetrics = finalChunk;
-          }
-
-        } catch (error) {
-          console.warn(
-            "[J.A.C.E.] Final stream chunk could not be parsed.",
-            error
-          );
-        }
+        await processStreamLine(streamBuffer.trim());
       }
 
       const performanceReport =
@@ -2195,9 +2187,11 @@ This evaluation must be honest and evidence-based.
         performance: performanceReport,
 
         ollamaMetrics: {
-          totalDuration: finalMetrics.total_duration || 0,
+          totalDuration:
+            finalMetrics.total_duration || 0,
 
-          loadDuration: finalMetrics.load_duration || 0,
+          loadDuration:
+            finalMetrics.load_duration || 0,
 
           promptEvaluationDuration:
             finalMetrics.prompt_eval_duration || 0,
@@ -2221,6 +2215,8 @@ This evaluation must be honest and evidence-based.
 
     } catch (error) {
       if (error.name === "AbortError") {
+        recordJaceAbortedRequest();
+
         return {
           success: false,
           aborted: true,
@@ -2249,7 +2245,7 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 38. STOP RESPONSE GENERATION
+  // 33. STOP RESPONSE GENERATION
   // =========================================================
 
   function stopJaceGeneration() {
@@ -2264,16 +2260,12 @@ This evaluation must be honest and evidence-based.
     return false;
   }
 
-  // =========================================================
-  // 39. RESPONSE GENERATION STATUS
-  // =========================================================
-
   function isJaceGenerating() {
     return isAiProcessing;
   }
 
   // =========================================================
-  // 40. PERFORMANCE CONSOLE DIAGNOSTICS
+  // 34. PERFORMANCE DIAGNOSTICS
   // =========================================================
 
   function logJacePerformance() {
@@ -2291,11 +2283,12 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 41. CONNECTION DIAGNOSTICS
+  // 35. SYSTEM DIAGNOSTICS
   // =========================================================
 
   async function runJaceDiagnostics() {
-    const connection = await checkOllamaConnection();
+    const connection =
+      await checkOllamaConnection();
 
     const diagnostics = {
       project: "J.A.C.E. 001",
@@ -2310,9 +2303,14 @@ This evaluation must be honest and evidence-based.
 
       availableModels: connection.models,
 
-      evaluation: getJaceEvaluationStatus(),
+      performance: getJacePerformanceReport(),
 
-      performance: getJacePerformanceReport()
+      imageProcessing: "Local OCR",
+
+      diagramRendering:
+        typeof window.mermaid !== "undefined"
+          ? "Loaded"
+          : "Loads when required"
     };
 
     console.group(
@@ -2326,7 +2324,11 @@ This evaluation must be honest and evidence-based.
 
       connection: diagnostics.connection,
 
-      modelAvailable: diagnostics.modelAvailable
+      modelAvailable: diagnostics.modelAvailable,
+
+      imageProcessing: diagnostics.imageProcessing,
+
+      diagramRendering: diagnostics.diagramRendering
     });
 
     console.log(diagnostics);
@@ -2335,8 +2337,9 @@ This evaluation must be honest and evidence-based.
 
     return diagnostics;
   }
-    // =========================================================
-  // 42. CHAT INTERFACE ELEMENTS
+
+  // =========================================================
+  // 36. CHAT INTERFACE ELEMENTS
   // =========================================================
 
   const jaceMainInput = document.querySelector(
@@ -2347,80 +2350,15 @@ This evaluation must be honest and evidence-based.
     ".input-console-container .execute-btn"
   );
 
-  const jaceMainOutput = document.getElementById(
-    "subtitleOutput"
-  );
+  const jaceMainOutput =
+    document.getElementById("subtitleOutput");
 
   const jaceMainUpload = document.querySelector(
     ".input-console-container input[type='file']"
   );
 
   // =========================================================
-  // 43. OUTPUT DISPLAY
-  // =========================================================
-
-  function displayJaceOutput(text) {
-    const output =
-      document.getElementById("subtitleOutput") ||
-      document.querySelector(".subtitle-output");
-
-    if (!output) {
-      console.log("[J.A.C.E. OUTPUT]", text);
-      return;
-    }
-
-    output.textContent = text;
-  }
-
-  function appendJaceOutput(text) {
-    const output =
-      document.getElementById("subtitleOutput") ||
-      document.querySelector(".subtitle-output");
-
-    if (!output) return;
-
-    output.textContent += text;
-  }
-
-  // =========================================================
-  // 44. CHAT HISTORY MANAGEMENT
-  // =========================================================
-
-  function getJaceActiveHistory(domain) {
-    const historyKey = domain || "general";
-
-    if (!conversationHistories[historyKey]) {
-      conversationHistories[historyKey] = [];
-    }
-
-    return conversationHistories[historyKey];
-  }
-
-  function addJaceHistoryMessage(domain, role, content) {
-    const history = getJaceActiveHistory(domain);
-
-    history.push({
-      role,
-      content
-    });
-
-    // Keep recent context within reasonable limits.
-    if (history.length > 24) {
-      history.splice(
-        0,
-        history.length - 24
-      );
-    }
-  }
-
-  function clearJaceConversation(domain) {
-    const historyKey = domain || "general";
-
-    conversationHistories[historyKey] = [];
-  }
-
-  // =========================================================
-  // 45. ACADEMIC IMAGE PURPOSE DETECTION
+  // 37. ACADEMIC MATERIAL PURPOSE
   // =========================================================
 
   function detectUploadedMaterialPurpose(query) {
@@ -2440,22 +2378,22 @@ This evaluation must be honest and evidence-based.
     }
 
     if (
-      /\b(notes|explain these notes|summarise these notes)\b/.test(text)
+      /\b(notes|explain these notes|summarise these notes|summarize these notes)\b/.test(text)
     ) {
       return "notes";
     }
 
     if (
-      /\b(explain this diagram|analyse this diagram)\b/.test(text)
+      /\b(explain this diagram|analyse this diagram|analyze this diagram)\b/.test(text)
     ) {
       return "diagram";
     }
 
-    return "question";
+    return identifyAcademicImagePurpose(query);
   }
 
   // =========================================================
-  // 46. GENERATE ACADEMIC RESPONSE
+  // 38. GENERATE ACADEMIC RESPONSE
   // =========================================================
 
   async function handleAiQuery(
@@ -2463,7 +2401,8 @@ This evaluation must be honest and evidence-based.
     domain = null,
     imageFile = null
   ) {
-    const userQuestion = String(query || "").trim();
+    const userQuestion =
+      String(query || "").trim();
 
     if (
       (!userQuestion && !imageFile) ||
@@ -2473,9 +2412,13 @@ This evaluation must be honest and evidence-based.
     }
 
     let imageContext = "";
+    let activeDomain =
+      domain || detectSubject(userQuestion);
 
-    const activeDomain =
-      domain || detectSubject(userQuestion) || "general";
+    if (!activeDomain || activeDomain === "general") {
+      activeDomain =
+        detectSubject(userQuestion);
+    }
 
     try {
       // -----------------------------------------------
@@ -2483,20 +2426,30 @@ This evaluation must be honest and evidence-based.
       // -----------------------------------------------
 
       if (imageFile) {
-        displayJaceOutput(
-          "Analysing the uploaded academic material..."
+        if (!confirmedAcademicFiles.has(imageFile)) {
+          displayJaceOutput(
+            "Please select and confirm an academic image first."
+          );
+
+          return;
+        }
+
+        await displayJaceOutput(
+          "Analysing the uploaded academic material...",
+          { render: false }
         );
 
         const purpose =
           detectUploadedMaterialPurpose(userQuestion);
 
-        const imageResult = await processAcademicImage(
-          imageFile,
-          purpose
-        );
+        const imageResult =
+          await processAcademicImage(
+            imageFile,
+            purpose
+          );
 
         if (!imageResult.success) {
-          displayJaceOutput(
+          await displayJaceOutput(
             imageResult.message ||
             "The uploaded image could not be processed."
           );
@@ -2505,10 +2458,19 @@ This evaluation must be honest and evidence-based.
         }
 
         imageContext = imageResult.context;
+
+        // If the image is an answer, retain the answer
+        // evaluation instructions.
+        if (purpose === "answer") {
+          imageContext =
+            buildAnswerEvaluationPrompt(
+              imageResult.text
+            );
+        }
       }
 
       // -----------------------------------------------
-      // CLASSIFY THE USER'S REQUEST
+      // CLASSIFY REQUEST
       // -----------------------------------------------
 
       const requestType =
@@ -2517,19 +2479,10 @@ This evaluation must be honest and evidence-based.
       let finalQuestion = userQuestion;
 
       if (requestType === "diagram") {
-        finalQuestion +=
+        finalQuestion =
+          userQuestion +
           "\n\n" +
           buildAcademicDiagramPrompt(userQuestion);
-      }
-
-      if (
-        imageFile &&
-        detectUploadedMaterialPurpose(userQuestion) === "answer"
-      ) {
-        imageContext =
-          buildAnswerEvaluationPrompt(
-            extractedImageText
-          );
       }
 
       // -----------------------------------------------
@@ -2550,14 +2503,19 @@ This evaluation must be honest and evidence-based.
         activeDomain,
         "user",
         questionForModel +
-          (imageContext ? "\n\n[Academic image attached]" : "")
+          (imageContext
+            ? "\n\n[Academic image attached]"
+            : "")
       );
 
       // -----------------------------------------------
       // GENERATE RESPONSE
       // -----------------------------------------------
 
-      displayJaceOutput("J.A.C.E. is processing...");
+      await displayJaceOutput(
+        "J.A.C.E. is processing...",
+        { render: false }
+      );
 
       let streamedAnswer = "";
 
@@ -2573,7 +2531,11 @@ This evaluation must be honest and evidence-based.
         onToken: (token) => {
           streamedAnswer += token;
 
-          displayJaceOutput(streamedAnswer);
+          // Avoid rebuilding the entire output on every token.
+          displayJaceOutput(
+            streamedAnswer,
+            { render: false }
+          );
         },
 
         onComplete: (response) => {
@@ -2602,7 +2564,9 @@ This evaluation must be honest and evidence-based.
           result.answer
         );
 
-        displayJaceOutput(result.answer);
+        // Render diagrams and mathematical notation
+        // after the complete response has arrived.
+        await displayJaceOutput(result.answer);
 
         console.log(
           formatJacePerformanceReport(
@@ -2612,10 +2576,21 @@ This evaluation must be honest and evidence-based.
       }
 
       if (result.aborted) {
-        displayJaceOutput(
-          (result.answer || streamedAnswer) +
+        const partialAnswer =
+          result.answer || streamedAnswer;
+
+        await displayJaceOutput(
+          partialAnswer +
           "\n\n[Generation stopped]"
         );
+
+        if (partialAnswer.trim()) {
+          addJaceHistoryMessage(
+            activeDomain,
+            "assistant",
+            partialAnswer
+          );
+        }
       }
 
     } catch (error) {
@@ -2624,7 +2599,7 @@ This evaluation must be honest and evidence-based.
         error
       );
 
-      displayJaceOutput(
+      await displayJaceOutput(
         "Unable to complete the request.\n\n" +
         error.message
       );
@@ -2635,7 +2610,7 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 47. MAIN CHAT SEND BUTTON
+  // 39. MAIN CHAT SEND BUTTON
   // =========================================================
 
   if (jaceMainButton && jaceMainInput) {
@@ -2670,42 +2645,52 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 48. IMAGE UPLOAD CONTROL
+  // 40. IMAGE UPLOAD CONTROL
   // =========================================================
 
   function connectJaceImageUpload(input) {
     if (!input) return;
 
-    input.addEventListener("change", async (event) => {
-      const file = event.target.files?.[0];
+    input.addEventListener(
+      "change",
+      (event) => {
+        const file =
+          event.target.files?.[0];
 
-      if (!file) return;
+        if (!file) return;
 
-      if (
-        !requestAcademicImageConfirmation(file)
-      ) {
-        input.value = "";
-        return;
+        if (
+          !requestAcademicImageConfirmation(file)
+        ) {
+          input.value = "";
+
+          if (input === jaceMainUpload) {
+            selectedAcademicImage = null;
+          }
+
+          return;
+        }
+
+        const filename =
+          input.parentElement?.querySelector(
+            ".selene-upload-filename"
+          );
+
+        if (filename) {
+          filename.textContent =
+            "Academic image selected: " +
+            file.name;
+        }
+
+        selectedAcademicImage = file;
       }
-
-      const filename =
-        input.parentElement?.querySelector(
-          ".selene-upload-filename"
-        );
-
-      if (filename) {
-        filename.textContent =
-          "Academic image selected: " + file.name;
-      }
-
-      selectedAcademicImage = file;
-    });
+    );
   }
 
   connectJaceImageUpload(jaceMainUpload);
 
   // =========================================================
-  // 49. STOP BUTTON CONNECTION
+  // 41. STOP BUTTON CONNECTION
   // =========================================================
 
   function connectJaceStopButton(button) {
@@ -2726,7 +2711,7 @@ This evaluation must be honest and evidence-based.
     .forEach(connectJaceStopButton);
 
   // =========================================================
-  // 50. MODULE WORKSPACE CONNECTION
+  // 42. MODULE WORKSPACE CONNECTION
   // =========================================================
 
   function connectJaceWorkspace(
@@ -2737,11 +2722,27 @@ This evaluation must be honest and evidence-based.
   ) {
     if (!input || !button) return;
 
+    // Each module's upload input is independently confirmed.
+    if (fileInput) {
+      connectJaceImageUpload(fileInput);
+    }
+
     const submit = () => {
+      const file =
+        fileInput?.files?.[0] || null;
+
+      if (file && !confirmedAcademicFiles.has(file)) {
+        displayJaceOutput(
+          "Please confirm that the uploaded image is for academic or research work."
+        );
+
+        return;
+      }
+
       handleAiQuery(
         input.value,
         domain,
-        fileInput?.files?.[0] || null
+        file
       );
     };
 
@@ -2765,30 +2766,7 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 51. DIAGNOSTIC ACCESS
-  // =========================================================
-
-  window.JACE001 = {
-    checkConnection: checkOllamaConnection,
-
-    diagnostics: runJaceDiagnostics,
-
-    performance: getJacePerformanceReport,
-
-    evaluation: getJaceEvaluationSummary,
-
-    evaluationStatus: getJaceEvaluationStatus,
-
-    benchmarks: getAllJaceBenchmarkQuestions,
-
-    exportEvaluation: exportJaceEvaluationData,
-
-    stop: stopJaceGeneration,
-
-    clearHistory: clearJaceConversation
-  };
-    // =========================================================
-  // 52. MODULE WORKSPACE INTEGRATION
+  // 43. MODULE WORKSPACE INTEGRATION
   // =========================================================
 
   function initialiseJaceWorkspaces() {
@@ -2856,7 +2834,61 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 53. SYSTEM STARTUP CHECK
+  // 44. DIAGNOSTIC ACCESS
+  // =========================================================
+
+  window.JACE001 = {
+    checkConnection: checkOllamaConnection,
+
+    diagnostics: runJaceDiagnostics,
+
+    performance: getJacePerformanceReport,
+
+    logPerformance: logJacePerformance,
+
+    stop: stopJaceGeneration,
+
+    isGenerating: isJaceGenerating,
+
+    clearHistory: clearJaceConversation,
+
+    detectSubject,
+
+    detectDiagramType,
+
+    isDiagramRequest: isAcademicDiagramRequest,
+
+    exportPerformance: () => {
+      const data = {
+        project: "J.A.C.E. 001",
+        exportDate: new Date().toISOString(),
+        performance: getJacePerformanceReport()
+      };
+
+      const blob = new Blob(
+        [JSON.stringify(data, null, 2)],
+        { type: "application/json" }
+      );
+
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "JACE-001-Performance-Report.json";
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // =========================================================
+  // 45. SYSTEM STARTUP CHECK
   // =========================================================
 
   async function initialiseJaceSystem() {
@@ -2867,7 +2899,8 @@ This evaluation must be honest and evidence-based.
     initialiseJaceWorkspaces();
 
     try {
-      const connection = await checkOllamaConnection();
+      const connection =
+        await checkOllamaConnection();
 
       if (!connection.connected) {
         console.warn(
@@ -2896,6 +2929,16 @@ This evaluation must be honest and evidence-based.
         OLLAMA_MODEL
       );
 
+      console.info(
+        "[J.A.C.E.] Diagram rendering:",
+        "Mermaid loads when required."
+      );
+
+      console.info(
+        "[J.A.C.E.] Image processing:",
+        "Local OCR enabled."
+      );
+
     } catch (error) {
       console.error(
         "[J.A.C.E. INITIALISATION]",
@@ -2905,7 +2948,7 @@ This evaluation must be honest and evidence-based.
   }
 
   // =========================================================
-  // 54. GLOBAL ERROR HANDLING
+  // 46. GLOBAL ERROR HANDLING
   // =========================================================
 
   window.addEventListener(
@@ -2931,7 +2974,7 @@ This evaluation must be honest and evidence-based.
   );
 
   // =========================================================
-  // 55. INITIALISE J.A.C.E. 001
+  // 47. INITIALISE J.A.C.E. 001
   // =========================================================
 
   initialiseJaceSystem();
