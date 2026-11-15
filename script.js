@@ -337,17 +337,29 @@ document.addEventListener("DOMContentLoaded", () => {
   // 6. SUBJECT INTELLIGENCE
   // =========================================================
 
+
+  // =========================================================
+  // 6. SUBJECT INTELLIGENCE — MODULE RECOGNITION
+  // =========================================================
+
   const subjectKeywords = {
     mathematics: [
-      "algebra", "geometry", "trigonometry",
-      "calculus", "arithmetic", "probability",
-      "statistics", "polynomial", "quadratic",
-      "equation", "inequality", "factorise",
-      "factorize", "differentiate", "integrate",
-      "derivative", "integral", "matrix",
-      "matrices", "theorem", "coordinate geometry",
-      "permutation", "combination", "solve for x",
-      "lcm", "hcf", "mensuration", "circle theorem"
+      "mathematics", "maths", "algebra", "geometry",
+      "trigonometry", "calculus", "arithmetic",
+      "probability", "statistics", "polynomial",
+      "quadratic equation", "linear equation",
+      "inequality", "factorise", "factorize",
+      "differentiate", "integration", "integrate",
+      "derivative", "integral", "matrix", "matrices",
+      "theorem", "coordinate geometry",
+      "permutation", "combination", "lcm", "hcf",
+      "mensuration", "circle theorem", "pythagoras",
+      "sequence and series", "logarithm",
+      "simultaneous equations", "number theory",
+      "vector algebra", "differential equation",
+      "simplify the expression", "solve for x",
+      "find the value of x", "calculate the area",
+      "calculate the perimeter"
     ],
 
     quantum: [
@@ -356,21 +368,32 @@ document.addEventListener("DOMContentLoaded", () => {
       "quantum circuit", "superposition",
       "entanglement", "quantum algorithm",
       "quantum error correction", "bell state",
-      "quantum measurement"
+      "quantum measurement", "quantum register",
+      "quantum teleportation", "quantum supremacy",
+      "quantum information", "dirac notation",
+      "quantum state", "quantum bit"
     ],
 
     physics: [
       "physics", "newton's law", "newton law",
       "force", "velocity", "acceleration",
       "displacement", "momentum", "gravity",
-      "gravitational", "kinetic energy",
+      "gravitational force", "kinetic energy",
       "potential energy", "work and energy",
       "thermodynamics", "electricity",
       "magnetism", "electromagnetism",
-      "resistance", "voltage", "current",
+      "resistance", "voltage", "electric current",
       "refraction", "reflection", "wavelength",
       "frequency", "optics", "ohm's law",
-      "ohms law", "pressure", "density"
+      "ohms law", "pressure", "density",
+      "circular motion", "projectile motion",
+      "centripetal force", "electromagnetic induction",
+      "electric field", "magnetic field",
+      "wave motion", "simple harmonic motion",
+      "laws of motion", "speed of light",
+      "gravitational potential", "specific heat",
+      "refractive index", "lens formula",
+      "mirror formula", "resistance in a circuit"
     ],
 
     chemistry: [
@@ -383,19 +406,38 @@ document.addEventListener("DOMContentLoaded", () => {
       "ionic bond", "organic chemistry",
       "hydrocarbon", "electrolysis",
       "chemical formula", "valency",
-      "catalyst", "pH value"
+      "catalyst", "pH value", "ph scale",
+      "chemical equilibrium", "reaction rate",
+      "molarity", "stoichiometry",
+      "electron configuration", "isotope",
+      "isotopes", "oxidation state",
+      "redox reaction", "chemical kinetics",
+      "organic compound", "functional group",
+      "periodic properties", "mole ratio",
+      "balancing chemical equations",
+      "enthalpy change", "activation energy"
     ],
 
     biology: [
       "biology", "photosynthesis", "respiration",
-      "cell", "cells", "mitosis", "meiosis",
-      "genetics", "heredity", "dna", "rna",
+      "cell", "cells", "cell division",
+      "cell membrane", "cell organelle",
+      "mitosis", "meiosis", "genetics",
+      "heredity", "dna", "rna",
       "chromosome", "chromosomes", "evolution",
       "ecosystem", "organism", "digestion",
       "circulation", "reproduction", "transpiration",
       "nervous system", "human anatomy",
       "plant tissue", "microorganism",
-      "bacteria", "virus", "protein synthesis"
+      "bacteria", "virus", "protein synthesis",
+      "natural selection", "food chain",
+      "food web", "ecosystem", "biodiversity",
+      "human physiology", "plant physiology",
+      "genetic inheritance", "punnett square",
+      "respiratory system", "digestive system",
+      "excretory system", "blood circulation",
+      "chlorophyll", "stomata", "pollination",
+      "fertilisation", "fertilization"
     ],
 
     history: [
@@ -406,7 +448,16 @@ document.addEventListener("DOMContentLoaded", () => {
       "mauryan", "gupta empire", "renaissance",
       "french revolution", "industrial revolution",
       "ancient india", "medieval india",
-      "freedom struggle", "historical event"
+      "freedom struggle", "historical event",
+      "first world war", "second world war",
+      "world war one", "world war two",
+      "indian independence", "british rule",
+      "non cooperation movement",
+      "civil disobedience movement",
+      "quit india movement", "harappan civilization",
+      "indus valley civilization",
+      "historical chronology", "historical source",
+      "treaty of versailles"
     ],
 
     psychology: [
@@ -417,40 +468,101 @@ document.addEventListener("DOMContentLoaded", () => {
       "cognitive bias", "conditioning",
       "social psychology", "developmental psychology",
       "perception", "attention", "mental processes",
-      "psychological theory"
+      "psychological theory", "classical conditioning",
+      "operant conditioning", "working memory",
+      "long term memory", "short term memory",
+      "personality theory", "social behaviour",
+      "social behavior", "cognitive development",
+      "human cognition", "psychological research",
+      "reinforcement", "neuropsychology"
     ],
 
     translation: [
       "translate this", "translate into",
       "translate to", "translation",
       "translate the following", "meaning in hindi",
-      "meaning in english"
+      "meaning in english", "translate this sentence",
+      "translate this paragraph", "translate this text",
+      "convert into english", "convert into hindi",
+      "source language", "target language"
     ]
   };
 
-  function detectSubject(query) {
-    const text = String(query || "").toLowerCase();
+  const subjectDisplayNames = {
+    mathematics: "Mathematics",
+    quantum: "Quantum Computing",
+    physics: "Physics",
+    chemistry: "Chemistry",
+    biology: "Biology",
+    history: "History",
+    psychology: "Psychology",
+    translation: "Translation"
+  };
+
+  function escapeSubjectKeyword(keyword) {
+    return keyword.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
+  }
+
+  function detectSubjects(query) {
+    const text = String(query || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!text) return [];
+
     const scores = {};
 
     for (const [domain, keywords] of Object.entries(subjectKeywords)) {
       let score = 0;
 
       for (const keyword of keywords) {
-        if (text.includes(keyword)) {
-          score += keyword.split(" ").length;
+        const escaped = escapeSubjectKeyword(keyword);
+
+        const pattern = new RegExp(
+          `(^|[^a-z0-9])${escaped}($|[^a-z0-9])`,
+          "i"
+        );
+
+        if (pattern.test(text)) {
+          // Multi-word specialist phrases carry more weight.
+          score += keyword.includes(" ") ? 3 : 1;
         }
       }
 
       scores[domain] = score;
     }
 
-    const sorted = Object.entries(scores)
-      .sort((a, b) => b[1] - a[1]);
+    // Recognise common mathematical expressions even
+    // when the user does not write the word "mathematics".
+    const mathematicalExpression =
+      /(?:\d+\s*[+\-*/=]\s*\d+)|(?:\b[a-z]\s*=\s*[-+]?\d+)/i.test(text);
 
-    return sorted[0]?.[1] > 0
-      ? sorted[0][0]
-      : "general";
+    const mathematicalCommand =
+      /\b(solve|simplify|factorise|factorize|differentiate|integrate|evaluate the expression)\b/i.test(text);
+
+    if (mathematicalExpression) {
+      scores.mathematics += 4;
+    }
+
+    if (mathematicalCommand) {
+      scores.mathematics += 3;
+    }
+
+    return Object.entries(scores)
+      .filter(([, score]) => score > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(([domain]) => domain);
   }
+
+  // Maintains compatibility with the rest of your script.
+  function detectSubject(query) {
+    return detectSubjects(query)[0] || "general";
+  }
+
 
   // =========================================================
   // 7. SPECIALIST ACADEMIC INSTRUCTIONS
@@ -751,6 +863,7 @@ RULES:
 `
   };
 
+
   // =========================================================
   // 8. SYSTEM PROMPT BUILDER
   // =========================================================
@@ -760,8 +873,37 @@ RULES:
       subjectInstructions[domain] ||
       subjectInstructions.general;
 
+    const moduleBoundary =
+      domain === "general"
+        ? `
+GENERAL ACADEMIC MODE:
+- Identify the appropriate academic discipline.
+- Apply the relevant academic methods.
+- Do not pretend to have specialist knowledge when uncertain.
+`
+        : `
+SPECIALIST MODULE BOUNDARY:
+
+Your active module is:
+${subjectDisplayNames[domain] || domain}
+
+- Your primary responsibility is this module's subject.
+- Do not answer questions clearly belonging to another
+  unrelated specialist module.
+- If a question is outside your subject, politely recommend
+  the appropriate module.
+- Do not provide the out-of-module answer after recommending
+  a switch.
+- Interdisciplinary questions may be answered when they
+  genuinely require your module's expertise.
+- Never claim that another module has processed a question
+  when it has not.
+`;
+
     return `
 ${selectedInstructions}
+
+${moduleBoundary}
 
 UNIVERSAL RESPONSE STANDARD:
 
@@ -775,6 +917,7 @@ UNIVERSAL RESPONSE STANDARD:
 - Stay within the academic and research purpose of J.A.C.E. 001.
 `;
   }
+
 
   // =========================================================
   // 9. ACADEMIC IMAGE SYSTEM
@@ -2437,6 +2580,11 @@ ${report.abortedRequests}
   // 38. GENERATE ACADEMIC RESPONSE
   // =========================================================
 
+ 
+  // =========================================================
+  // 38. GENERATE ACADEMIC RESPONSE — SUBJECT ENFORCEMENT
+  // =========================================================
+
   async function handleAiQuery(
     query,
     domain = null,
@@ -2453,13 +2601,13 @@ ${report.abortedRequests}
     }
 
     let imageContext = "";
-    let activeDomain =
-      domain || detectSubject(userQuestion);
+    let extractedTextForRouting = "";
 
-    if (!activeDomain || activeDomain === "general") {
-      activeDomain =
-        detectSubject(userQuestion);
-    }
+    // A selected module takes priority over automatic routing.
+    let activeDomain =
+      domain && domain !== "general"
+        ? domain
+        : detectSubject(userQuestion);
 
     try {
       // -----------------------------------------------
@@ -2468,7 +2616,7 @@ ${report.abortedRequests}
 
       if (imageFile) {
         if (!confirmedAcademicFiles.has(imageFile)) {
-          displayJaceOutput(
+          await displayJaceOutput(
             "Please select and confirm an academic image first."
           );
 
@@ -2476,7 +2624,7 @@ ${report.abortedRequests}
         }
 
         await displayJaceOutput(
-          "Analysing the uploaded academic material...",
+          "Selené is analysing the uploaded academic material...",
           { render: false }
         );
 
@@ -2499,14 +2647,96 @@ ${report.abortedRequests}
         }
 
         imageContext = imageResult.context;
+        extractedTextForRouting = imageResult.text;
 
-        // If the image is an answer, retain the answer
-        // evaluation instructions.
         if (purpose === "answer") {
           imageContext =
             buildAnswerEvaluationPrompt(
               imageResult.text
             );
+        }
+      }
+
+      // -----------------------------------------------
+      // SUBJECT RECOGNITION
+      // -----------------------------------------------
+
+      const routingText = [
+        userQuestion,
+        extractedTextForRouting
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const recognisedSubjects =
+        detectSubjects(routingText);
+
+      const recognisedPrimarySubject =
+        recognisedSubjects[0] || "general";
+
+      // -----------------------------------------------
+      // GENERAL MODE: AUTOMATIC SUBJECT ROUTING
+      // -----------------------------------------------
+
+      if (!domain || domain === "general") {
+        activeDomain = recognisedPrimarySubject;
+      }
+
+      // -----------------------------------------------
+      // SPECIALIST MODE: ENFORCE SUBJECT BOUNDARIES
+      // -----------------------------------------------
+
+      else {
+        activeDomain = domain;
+
+        const selectedModuleRecognised =
+          recognisedSubjects.includes(domain);
+
+        const questionHasRecognisableSubject =
+          recognisedSubjects.length > 0;
+
+        if (
+          questionHasRecognisableSubject &&
+          !selectedModuleRecognised
+        ) {
+          const recommendedDomain =
+            recognisedPrimarySubject;
+
+          const recommendedName =
+            subjectDisplayNames[recommendedDomain] ||
+            "the appropriate academic";
+
+          const selectedName =
+            subjectDisplayNames[domain] ||
+            domain;
+
+          const recommendation =
+            "I understand your question. However, this topic " +
+            "appears to belong to " + recommendedName + 
+            ", rather than " + selectedName + ".\n\n" +
+
+            "To provide you with a specialised and accurate " +
+            "explanation, I recommend switching to the " +
+            recommendedName + " module.\n\n" +
+
+            "Please select the " + recommendedName +
+            " module and submit your question there. " +
+            "Your question has not been sent to the " +
+            selectedName + " specialist.";
+
+          await displayJaceOutput(recommendation);
+
+          console.info(
+            "[J.A.C.E. SUBJECT ROUTING]",
+            {
+              selectedModule: domain,
+              recognisedSubjects,
+              recommendedModule: recommendedDomain,
+              requestForwarded: false
+            }
+          );
+
+          return;
         }
       }
 
@@ -2550,11 +2780,11 @@ ${report.abortedRequests}
       );
 
       // -----------------------------------------------
-      // GENERATE RESPONSE
+      // GENERATE SPECIALIST RESPONSE
       // -----------------------------------------------
 
       await displayJaceOutput(
-        "Selené is processing...",
+        "Selené is thinking...",
         { render: false }
       );
 
@@ -2572,7 +2802,6 @@ ${report.abortedRequests}
         onToken: (token) => {
           streamedAnswer += token;
 
-          // Avoid rebuilding the entire output on every token.
           displayJaceOutput(
             streamedAnswer,
             { render: false }
@@ -2605,8 +2834,6 @@ ${report.abortedRequests}
           result.answer
         );
 
-        // Render diagrams and mathematical notation
-        // after the complete response has arrived.
         await displayJaceOutput(result.answer);
 
         console.log(
@@ -2649,6 +2876,7 @@ ${report.abortedRequests}
       clearAcademicImageState();
     }
   }
+
 
   // =========================================================
   // 39. MAIN CHAT SEND BUTTON
@@ -3050,6 +3278,7 @@ ${report.abortedRequests}
     clearHistory: clearJaceConversation,
 
     detectSubject,
+    detectSubjects,
 
     detectDiagramType,
 
