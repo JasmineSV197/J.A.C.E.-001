@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const AI_OPTIONS = {
     temperature: 0.25,
     top_p: 0.85,
-    num_ctx: 2048,
-    num_predict: 384,
+    num_ctx: 4096,
+    num_predict: 768,
     repeat_penalty: 1.1
   };
 
@@ -2904,6 +2904,7 @@ IMPORTANT:
       performance: getJacePerformanceReport(),
 
       imageProcessing: "Local OCR",
+            training: getJaceTrainingStatus(),
 
       diagramRendering:
         typeof window.mermaid !== "undefined"
@@ -3023,10 +3024,15 @@ IMPORTANT:
         ? domain
         : detectSubject(userQuestion);
 
-    try {
+       try {
       // -----------------------------------------------
-      // IMAGE PROCESSING
+      // LOAD TRAINING DATASETS
       // -----------------------------------------------
+
+      await loadTrainingDatasets();
+
+      // -----------------------------------------------
+      // IMAGE PROCESSING--------------------------------------------
 
       if (imageFile) {
         if (!confirmedAcademicFiles.has(imageFile)) {
@@ -3690,9 +3696,25 @@ IMPORTANT:
     isGenerating: isJaceGenerating,
 
     clearHistory: clearJaceConversation,
+        trainingStatus: getJaceTrainingStatus,
+
+    reloadTraining: async () => {
+      trainingLoadPromise = null;
+
+      subjectTrainingExamples = [];
+      responseTrainingExamples = [];
+
+      trainingStatus.loaded = false;
+      trainingStatus.subjectExamples = 0;
+      trainingStatus.responseExamples = 0;
+      trainingStatus.errors = [];
+
+      return loadTrainingDatasets();
+    },
 
     detectSubject,
     detectSubjects,
+    
 
     detectDiagramType,
 
@@ -3738,6 +3760,7 @@ IMPORTANT:
 
     initialiseJaceWorkspaces();
     initialiseJaceModuleNavigation();
+        loadTrainingDatasets();
 
     try {
       const connection =
