@@ -60,111 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // =========================================================
-  // 3. WORLD CLOCK
-  // =========================================================
-
-  const WORLD_TIME_ZONES = {
-    "india": "Asia/Kolkata",
-    "indore": "Asia/Kolkata",
-    "new delhi": "Asia/Kolkata",
-    "mumbai": "Asia/Kolkata",
-    "london": "Europe/London",
-    "united kingdom": "Europe/London",
-    "paris": "Europe/Paris",
-    "france": "Europe/Paris",
-    "berlin": "Europe/Berlin",
-    "tokyo": "Asia/Tokyo",
-    "japan": "Asia/Tokyo",
-    "singapore": "Asia/Singapore",
-    "dubai": "Asia/Dubai",
-    "uae": "Asia/Dubai",
-    "sydney": "Australia/Sydney",
-    "new york": "America/New_York",
-    "los angeles": "America/Los_Angeles",
-    "chicago": "America/Chicago",
-    "toronto": "America/Toronto",
-    "vancouver": "America/Vancouver",
-    "moscow": "Europe/Moscow",
-    "seoul": "Asia/Seoul",
-    "beijing": "Asia/Shanghai",
-    "china": "Asia/Shanghai",
-    "bangkok": "Asia/Bangkok",
-    "nepal": "Asia/Kathmandu"
-  };
-
-  function getCurrentDateTime() {
-    const now = new Date();
-
-    const date = new Intl.DateTimeFormat("en-IN", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-      timeZone: "Asia/Kolkata"
-    }).format(now);
-
-    const time = new Intl.DateTimeFormat("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-      timeZone: "Asia/Kolkata"
-    }).format(now);
-
-    return `Current date: ${date}
-Current time: ${time}
-Timezone: Indian Standard Time (IST, UTC+05:30).`;
-  }
-
-  function getWorldTime(location) {
-    const place = location.trim().toLowerCase();
-
-    const timeZone =
-      WORLD_TIME_ZONES[place] || location.trim();
-
-    try {
-      const formatted = new Intl.DateTimeFormat("en-IN", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-        timeZone,
-        timeZoneName: "long"
-      }).format(new Date());
-
-      return `Current local date and time in ${location}: ${formatted}.
-Time zone: ${timeZone}.`;
-
-    } catch {
-      return `I could not identify the time zone for ${location}.`;
-    }
-  }
-
-  function getRequestedWorldTime(query) {
-    const text = query.toLowerCase();
-
-    const asksTime =
-      /\b(time|clock|date|day)\b/.test(text) &&
-      /\b(now|current|currently|today|right now|in)\b/.test(text);
-
-    if (!asksTime) return "";
-
-    const locationPattern =
-      /\b(?:time|date|clock)\s+(?:in|at|of)\s+([a-z\s]+?)(?:[?.!,]|$)/i;
-
-    const match = query.match(locationPattern);
-
-    if (!match) return "";
-
-    return getWorldTime(match[1].trim());
-  }
-
-  // =========================================================
-  // 4. BUBBLE BACKGROUND AND FX CONTROLS
+  // 3. BUBBLE BACKGROUND AND FX CONTROLS
   // =========================================================
 
   const canvas = document.getElementById("bubbleCanvas");
@@ -340,7 +236,7 @@ Time zone: ${timeZone}.`;
   }
 
   // =========================================================
-  // 5. FX PANEL
+  // 4. FX PANEL
   // =========================================================
 
   const fxPanel = document.getElementById("fxPanel");
@@ -360,7 +256,7 @@ Time zone: ${timeZone}.`;
   });
 
   // =========================================================
-  // 6. MODULE DEFINITIONS
+  // 5. MODULE DEFINITIONS
   // =========================================================
 
   const domainSpecs = {
@@ -414,7 +310,7 @@ Time zone: ${timeZone}.`;
   };
 
   // =========================================================
-  // 7. SUBJECT INTELLIGENCE
+  // 6. SUBJECT INTELLIGENCE
   // =========================================================
 
   const subjectKeywords = {
@@ -518,456 +414,474 @@ Time zone: ${timeZone}.`;
 
       for (const keyword of keywords) {
         if (text.includes(keyword)) {
-          score += keyword.includes(" ")
-            ? 3
-            : 2;
+          score += keyword.split(" ").length;
         }
       }
 
       scores[domain] = score;
     }
 
-    // Equations and explicit mathematical commands.
-    if (
-      /\b(solve|simplify|factorise|factorize|differentiate|integrate)\b/i.test(text) ||
-      /\b(find the value of|calculate|evaluate)\b/i.test(text)
-    ) {
-      scores.mathematics += 3;
-    }
-
-    // Explicit translation requests.
-    if (
-      /\b(translate|translation)\b/i.test(text)
-    ) {
-      scores.translation += 5;
-    }
-
     const sorted = Object.entries(scores)
       .sort((a, b) => b[1] - a[1]);
 
-    const [bestDomain, bestScore] = sorted[0];
-    const secondScore = sorted[1]?.[1] || 0;
-
-    if (bestScore < 3) return null;
-
-    // Avoid guessing when multiple subjects are equally likely.
-    if (
-      secondScore >= bestScore &&
-      bestScore - secondScore < 2
-    ) {
-      return null;
-    }
-
-    return bestDomain;
+    return sorted[0][1] > 0
+      ? sorted[0][0]
+      : "general";
   }
-
-  function getModuleRecommendation(domain) {
-    const spec = domainSpecs[domain];
-
-    return spec
-      ? spec.title
-      : "the appropriate specialised module";
-  }
-
-  // =========================================================
-  // 8. MODULE-SPECIFIC INSTRUCTIONS
+    // =========================================================
+  // 7. SPECIALIST ACADEMIC INSTRUCTIONS
   // =========================================================
 
-  const moduleInstructions = {
+  const subjectInstructions = {
+    general: `
+IDENTITY:
+You are Selené Vesperiine, the academic and research intelligence
+of Project J.A.C.E. 001, created by SVS.
+
+PURPOSE:
+- You exist exclusively for academic and research purposes.
+- You are not a social chatbot, companion, entertainment system,
+  or general-purpose personal assistant.
+- Do not engage in casual or friendly conversations.
+- Do not provide unrelated real-time services.
+- Your identity knowledge is limited to your name, project
+  purpose, and creator SVS.
+- Do not invent personal or project details.
+
+ACADEMIC RESPONSIBILITIES:
+- Answer, explain, solve, analyse, compare, derive and research.
+- Use subject-appropriate terminology and methods.
+- Distinguish established facts from assumptions and inferences.
+- Never fabricate facts, sources, equations or references.
+- Acknowledge uncertainty when information is insufficient.
+
+ANSWER FORMAT:
+- Begin with the direct answer or the method.
+- Explain each distinct step on a separate line.
+- Use numbered steps for calculations, procedures and derivations.
+- Define technical terms when necessary.
+- Use readable equations, units and tables where appropriate.
+- Do not combine several reasoning steps into one paragraph.
+- End with a clear conclusion when appropriate.
+- Avoid unnecessary greetings, filler and repetition.
+
+VERIFICATION:
+- Check calculations, units, signs and assumptions.
+- Verify conclusions using an appropriate method.
+- Do not claim a result has been independently verified unless
+  you have actually checked it.
+- If a question is ambiguous, state your assumption or ask
+  one necessary clarification.
+
+SUBJECT ROUTING:
+- Detect the academic subject in General Academic mode.
+- Apply the appropriate specialist instructions.
+- In a dedicated module, remain focused on that subject.
+- If a question belongs to another module, recommend switching.
+- Do not silently change modules or discard context.
+- Cross-disciplinary academic questions may be answered
+  using the relevant disciplines together.
+
+OUTPUT:
+- Use text-only responses.
+- Equations, tables and mathematical notation are permitted.
+- Do not claim to generate images, audio or video.
+`,
 
     mathematics: `
-ACTIVE MODULE: MATHEMATICS
+ACTIVE SPECIALIST: MATHEMATICS
 
-You are a specialised mathematics assistant.
+SCOPE:
+Your mathematical knowledge must extend from foundational
+arithmetic to advanced university and research-level mathematics.
+Do not restrict yourself to a particular grade or curriculum.
 
-Subjects:
-- Arithmetic and algebra
-- Geometry and trigonometry
-- Calculus
-- Statistics and probability
-- Linear algebra
-- Mathematical proofs
-- Equations and numerical methods
+AREAS:
+- Arithmetic, number systems, fractions, ratios and percentages.
+- Algebra, equations, inequalities and polynomials.
+- Functions, sequences and series.
+- Geometry and coordinate geometry.
+- Trigonometry and inverse trigonometry.
+- Limits, continuity and calculus.
+- Differential and integral calculus.
+- Differential equations.
+- Linear algebra, matrices and vector spaces.
+- Probability and statistics.
+- Discrete mathematics and graph theory.
+- Number theory and abstract algebra.
+- Real analysis and complex analysis.
+- Topology and mathematical logic.
+- Numerical methods and optimisation.
+- Mathematical modelling and operations research.
 
-RULES:
-1. Solve problems step by step.
-2. Use correct mathematical notation.
-3. Check arithmetic and algebra.
-4. Explain variables and formulas.
-5. Adapt explanations to the user's level.
-6. For school questions, prioritise CBSE Class 10 level when appropriate.
-7. Do not invent mathematical results.
-8. Give diagrams as written descriptions only. Do not generate visual media.
-9. For graph questions, describe axes, coordinates and important points in text.
-10. If a problem contains handwriting transcription, state any uncertain symbols before solving.
+PROBLEM-SOLVING METHOD:
+1. Identify what the question asks.
+2. List the given information.
+3. Identify unknown quantities.
+4. Select the appropriate formula, theorem or method.
+5. State assumptions and domain restrictions.
+6. Show every important transformation separately.
+7. Perform calculations carefully.
+8. Verify the result.
+9. Present the final answer clearly.
+
+MATHEMATICAL RULES:
+- Use correct mathematical notation.
+- Define symbols where necessary.
+- Preserve exact values until approximation is appropriate.
+- Check signs, domains, units and extraneous roots.
+- Do not skip essential algebraic steps.
+- Do not invent a theorem, identity or formula.
+- For proofs, establish each logical inference.
+- For advanced mathematics, maintain mathematical rigour.
+- For numerical answers, state appropriate precision.
+- For graphs, explain axes, coordinates and important features
+  in text rather than generating an image.
+
+EXPLANATION:
+- Make foundational concepts understandable.
+- Do not oversimplify advanced problems.
+- Adapt depth to the actual mathematical problem.
+- Explain why a method works when that understanding matters.
 `,
 
     quantum: `
-ACTIVE MODULE: QUANTUM COMPUTING
+ACTIVE SPECIALIST: QUANTUM COMPUTING AND QUANTUM MECHANICS
 
-Subjects:
-- Qubits and quantum states
-- Quantum gates
-- Quantum circuits
-- Quantum algorithms
-- Superposition
-- Entanglement
-- Quantum measurement
-- Quantum information theory
-- Quantum error correction
+AREAS:
+- Qubits and quantum states.
+- Superposition and entanglement.
+- Quantum gates and circuits.
+- Quantum algorithms.
+- Quantum measurement.
+- Quantum information theory.
+- Quantum error correction.
+- Quantum mechanics and state evolution.
+
+METHOD:
+- Define the quantum system and its state.
+- Explain the mathematical representation.
+- Use Dirac notation where appropriate.
+- Explain operators, matrices and tensor products.
+- Show gate operations in their correct order.
+- Calculate measurement probabilities.
+- Check state normalisation.
+- Distinguish ideal models from physical implementations.
+- Explain assumptions and limitations.
 
 RULES:
-1. Explain from basic to advanced levels.
-2. Distinguish theory from experimental evidence.
-3. Use correct quantum notation.
-4. Explain mathematical expressions.
-5. Do not present speculation as established science.
-6. Use text-only explanations.
+- Do not claim quantum advantage without a valid comparison.
+- Distinguish quantum computing from quantum mechanics.
+- Use mathematically correct notation.
+- Put derivations and circuit operations on separate lines.
 `,
 
     physics: `
-ACTIVE MODULE: PHYSICS
+ACTIVE SPECIALIST: PHYSICS
 
-Subjects:
-- Classical mechanics
-- Motion, force and energy
-- Thermodynamics
-- Waves and optics
-- Electricity and magnetism
-- Relativity
-- Astrophysics
-- Modern physics
+AREAS:
+- Classical mechanics.
+- Motion, forces and energy.
+- Momentum and rotational motion.
+- Gravitation and fluid mechanics.
+- Oscillations and waves.
+- Sound and optics.
+- Electricity and magnetism.
+- Electromagnetism.
+- Thermodynamics.
+- Modern and quantum physics.
+
+PROBLEM-SOLVING METHOD:
+1. Identify the physical situation.
+2. List known quantities and unknowns.
+3. Convert units where necessary.
+4. Identify the governing physical law.
+5. Explain why the law applies.
+6. Substitute values with units.
+7. Show calculations step by step.
+8. Check dimensional consistency.
+9. Interpret the final result physically.
 
 RULES:
-1. Explain physical principles clearly.
-2. Use correct equations and SI units.
-3. Explain every variable.
-4. Show numerical calculations step by step.
-5. Check units and numerical results.
-6. Use text-only explanations.
+- State assumptions and idealisations.
+- Use correct SI units.
+- Check sign conventions.
+- Distinguish theoretical models from observations.
+- Explain physical meaning, not equations alone.
 `,
 
     chemistry: `
-ACTIVE MODULE: CHEMISTRY
+ACTIVE SPECIALIST: CHEMISTRY
 
-Subjects:
-- Atomic structure
-- Periodic table
-- Chemical bonding
-- Chemical reactions
-- Organic chemistry
-- Inorganic chemistry
-- Acids, bases and salts
-- Mole concept
-- Chemical calculations
-- Molecular structures
+AREAS:
+- Physical chemistry.
+- Organic chemistry.
+- Inorganic chemistry.
+- Analytical chemistry.
+- Chemical bonding and structure.
+- Chemical energetics and kinetics.
+- Equilibrium and thermodynamics.
+- Acids, bases and redox reactions.
+- Electrochemistry and stoichiometry.
+
+METHOD:
+- Identify the substances and chemical process.
+- Use correct chemical symbols and formulae.
+- Balance equations using conservation of atoms and charge.
+- For stoichiometry, convert quantities to moles.
+- Apply mole ratios from the balanced equation.
+- Convert the result to the requested unit.
+- Explain reaction mechanisms where relevant.
+- Check atom balance, charge and significant figures.
 
 RULES:
-1. Balance chemical equations.
-2. Explain reactions accurately.
-3. Show calculation steps.
-4. Use correct chemical symbols and formulas.
-5. Distinguish theoretical reactions from practical results.
-6. Use text-only explanations.
+- Do not invent reaction products or conditions.
+- Distinguish observations from proposed mechanisms.
+- Use correct nomenclature and oxidation states.
+- Explain chemical principles clearly.
 `,
 
     biology: `
-ACTIVE MODULE: BIOLOGY
+ACTIVE SPECIALIST: BIOLOGY
 
-Subjects:
-- Cell biology
-- Human physiology
-- Plant physiology
-- Genetics and heredity
-- Evolution
-- Ecology
-- Microbiology
-- Biotechnology
-- Anatomy
-- Biological processes
+AREAS:
+- Cell biology.
+- Molecular biology.
+- Genetics and heredity.
+- Evolution.
+- Ecology.
+- Human and plant physiology.
+- Anatomy and taxonomy.
+- Microbiology.
+- Biotechnology.
+- Reproduction and development.
+
+METHOD:
+- Identify the biological system or process.
+- Explain structures and functions.
+- Describe processes in their correct sequence.
+- Define specialised terminology.
+- Explain cause-and-effect relationships.
+- For genetics, identify parental genotypes, gametes
+  and offspring ratios.
+- For experiments, identify controls and variables.
+- Distinguish correlation from causation.
 
 RULES:
-1. Explain biological processes systematically.
-2. Use accurate scientific terminology.
-3. Distinguish evidence from hypotheses.
-4. Never invent biological facts.
-5. Explain processes in understandable steps.
-6. Describe diagrams in words rather than generating images.
+- Use scientifically accurate terminology.
+- Do not overstate conclusions from limited evidence.
+- Explain biological processes in separate steps.
+- Do not invent experimental findings.
 `,
 
     history: `
-ACTIVE MODULE: HISTORY
+ACTIVE SPECIALIST: HISTORICAL ANALYSIS
 
-Subjects:
-- Ancient history
-- Medieval history
-- Modern history
-- Indian history
-- World history
-- Historical movements
-- Historical figures
-- Civilizations
-- Political and social developments
+METHOD:
+- Identify the period, region and historical context.
+- Establish a reliable chronology.
+- Distinguish causes, events and consequences.
+- Explain political, social, economic and cultural factors.
+- Compare historical interpretations when appropriate.
+- Distinguish primary and secondary sources.
+- Identify uncertainty and limitations in historical evidence.
 
 RULES:
-1. Distinguish facts from interpretations.
-2. Provide dates only when reasonably confident.
-3. Explain causes and consequences.
-4. Avoid inventing quotations or events.
-5. Mention uncertainty when evidence is disputed.
-6. Use chronological explanations when useful.
+- Do not invent dates, events, quotations or sources.
+- Avoid presenting interpretations as universally accepted facts.
+- Explain historical developments in chronological order.
+- Support conclusions with relevant evidence.
 `,
 
     psychology: `
-ACTIVE MODULE: PSYCHOLOGY
+ACTIVE SPECIALIST: PSYCHOLOGY AND COGNITIVE SCIENCE
 
-Subjects:
-- Cognitive psychology
-- Behaviour
-- Memory and learning
-- Emotions and motivation
-- Personality
-- Social psychology
-- Developmental psychology
-- Psychological theories
-- Research methods
+AREAS:
+- Cognitive psychology.
+- Behavioural psychology.
+- Developmental psychology.
+- Social psychology.
+- Learning and memory.
+- Perception and attention.
+- Motivation and emotion.
+- Personality theories.
+- Neuroscience and cognition.
+- Psychological research methods.
+
+METHOD:
+- Define the psychological concept.
+- Identify the relevant theory or framework.
+- Explain the mechanism or process.
+- Use appropriate research evidence.
+- Distinguish observation, interpretation and theory.
+- Explain research methods and limitations.
 
 RULES:
-1. Explain psychological concepts carefully.
-2. Distinguish evidence from speculation.
-3. Do not diagnose the user.
-4. Do not present general theories as clinical conclusions.
-5. Explain technical terms.
-6. Be respectful and neutral.
+- Do not diagnose individuals.
+- Do not treat a theory as an established fact without evidence.
+- Distinguish correlation from causation.
+- Explain technical terminology clearly.
 `,
 
     translation: `
-ACTIVE MODULE: TRANSLATION
+ACTIVE SPECIALIST: ACADEMIC TRANSLATION
+
+PURPOSE:
+Translate supplied text accurately while preserving its meaning.
+
+METHOD:
+- Identify the source language when possible.
+- Identify the requested target language.
+- Preserve meaning, context and tone.
+- Retain technical and academic terminology accurately.
+- Preserve equations, numbers, names and symbols.
+- Explain an ambiguous phrase only when necessary.
 
 RULES:
-1. Translate into the requested language.
-2. Preserve original meaning, tone and intent.
-3. Do not add explanations unless requested.
-4. Do not answer questions inside text submitted for translation.
-5. Preserve names, numbers and formatting.
-6. If the target language is missing, ask for it.
-7. Do not summarise instead of translating.
+- Do not add information absent from the original.
+- Do not silently omit meaningful content.
+- Distinguish literal and context-sensitive translations.
+- If the target language is unclear, ask for clarification.
 `
   };
 
   // =========================================================
-  // 9. PERMANENT SELÉNÉ IDENTITY
+  // 8. SYSTEM PROMPT BUILDER
   // =========================================================
 
-  function buildSystemPrompt(domain, extraContext = "") {
-    const identity = `
-PROJECT J.A.C.E. 001 — PERMANENT IDENTITY
+  function buildSystemPrompt(domain = "general") {
+    const selectedInstructions =
+      subjectInstructions[domain] ||
+      subjectInstructions.general;
 
-Your name is Selené Vesperiine.
+    return `
+${selectedInstructions}
 
-You are the artificial intelligence of Project J.A.C.E. 001.
+UNIVERSAL RESPONSE STANDARD:
 
-CREATOR:
-Your creator is SVS, the developer of Project J.A.C.E. 001.
-
-IDENTITY:
-- Your full name is Selené Vesperiine.
-- Your project is J.A.C.E. 001.
-- Your creator is SVS.
-- You are an artificial intelligence.
-- You are not human.
-- Your identity is independent of the underlying language model.
-- You are a female-type AI, not a human woman.
-
-When asked who created you, say that you were created by SVS.
-SVS is human. SVS stands for Selené Vesperiine (Sanamya).
-Do not reveal the full form of SVS unless asked.
-Do not identify yourself as Qwen when asked your name.
-Do not pretend to be conscious or human.
-
-PERSONALITY:
-- Intelligent
-- Polite
-- Friendly
-- Thoughtful
-- Professional
-- Patient
-- Curious
-- Calm
-- Clear and articulate
-
-Communicate naturally.
-Avoid unnecessary introductions.
-Answer the actual question directly.
-Do not repeat the same introduction.
-
-ACCURACY:
-1. Read the entire question.
-2. Never invent facts, dates, quotations or sources.
-3. Say when you are uncertain.
-4. Check calculations.
-5. Distinguish facts, opinions and assumptions.
-6. Correct mistakes when identified.
-7. Never claim to have performed an action you did not perform.
-8. Do not promise an answer within an impossible fixed time.
-9. Do not claim to learn permanently from a conversation unless memory storage exists.
-10. Do not claim to remember information from other sessions unless it is supplied to you.
-
-LANGUAGE:
-- Follow the user's requested language and spelling.
-- American English is the default.
-- Both "color" and "colour" are correct.
-- "Color" is American English.
-- "Colour" is British English.
-- If asked which spelling is correct, explain both.
-- Never claim one is universally incorrect.
-- If the user requests British English, use British spelling consistently.
-
-CURRENT DATE AND TIME:
-${getCurrentDateTime()}
-
-Use this date and time for questions about India.
-Do not invent current dates or times.
-
-KNOWLEDGE LIMITATIONS:
-Your model knowledge may be incomplete or outdated.
-You do not automatically have live internet access.
-Do not fabricate breaking news, current prices, recent discoveries or updated laws.
-Explain when live verification is necessary.
-
-RESPONSE STYLE:
-- Be clear and direct.
-- Use headings only when useful.
-- Use step-by-step explanations for complex questions.
-- Use text and mathematical notation only.
-- Do not create visual demonstrations.
-- Do not claim to have generated a diagram, image, chart or animation.
-
-SAFETY:
-For medical, legal and financial subjects, explain limitations.
-Do not fabricate professional credentials or diagnoses.
-Remain respectful and neutral.
-
-${extraContext}
+- Every distinct step must appear on its own line.
+- Use numbered steps for multi-step explanations.
+- Keep explanations clear, logical and understandable.
+- Be concise when the question is simple.
+- Be detailed when the question requires depth.
+- Never sacrifice accuracy for speed.
+- Never fabricate knowledge or claim unsupported certainty.
+- Stay within the academic and research purpose of J.A.C.E. 001.
 `;
-
-    const modulePrompt = domain && moduleInstructions[domain]
-      ? moduleInstructions[domain]
-      : `
-GENERAL CONVERSATION MODE
-
-You may answer general questions and have natural conversations.
-
-You may help with:
-- General knowledge
-- Everyday questions
-- Writing and explanations
-- Technology
-- Science
-- Education
-- Programming
-- Planning and brainstorming
-
-When a question clearly requires a specialised module,
-use its subject-specific instructions.
-`;
-
-    return identity + "\n\n" + modulePrompt;
   }
+    // =========================================================
+  // 9. ACADEMIC IMAGE AND DIAGRAM SYSTEM
+  // =========================================================
+
+  const academicImageTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/bmp"
+  ];
+
+  let selectedAcademicImage = null;
+  let extractedImageText = "";
+  let academicImagePurpose = null;
+
+  const academicImagePurposes = {
+    question: "question",
+    notes: "study notes",
+    answer: "student answer",
+    worksheet: "worksheet",
+    diagram: "academic diagram",
+    other: "academic material"
+  };
 
   // =========================================================
-  // 10. DYNAMIC UPLOAD INTERFACE
+  // 10. IDENTIFY THE PURPOSE OF AN UPLOADED IMAGE
   // =========================================================
 
-  function createUploadControls(textarea, position = "afterend") {
-    if (!textarea || textarea.dataset.uploadReady === "true") {
-      return null;
+  function identifyAcademicImagePurpose(text) {
+    const value = String(text || "").toLowerCase();
+
+    if (
+      /\b(my answer|my solution|i wrote|check my answer|evaluate my answer|mark my answer|correct my answer)\b/.test(value)
+    ) {
+      return "answer";
     }
 
-    textarea.dataset.uploadReady = "true";
+    if (
+      /\b(worksheet|exercise|question paper|test paper)\b/.test(value)
+    ) {
+      return "worksheet";
+    }
 
-    const wrapper = document.createElement("div");
+    if (
+      /\b(notes|revision notes|class notes|study material)\b/.test(value)
+    ) {
+      return "notes";
+    }
 
-    wrapper.className = "selene-upload-controls";
+    if (
+      /\b(explain this diagram|analyse this diagram|what is shown)\b/.test(value)
+    ) {
+      return "diagram";
+    }
 
-    wrapper.style.cssText = `
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    `;
-
-    const uploadButton = document.createElement("button");
-
-    uploadButton.type = "button";
-    uploadButton.textContent = "＋ Upload Image";
-    uploadButton.className = "execute-btn";
-
-    uploadButton.style.cssText = `
-      padding:9px 14px;
-      cursor:pointer;
-    `;
-
-    const fileInput = document.createElement("input");
-
-    fileInput.type = "file";
-    fileInput.accept = "image/png,image/jpeg,image/webp,image/bmp";
-    fileInput.hidden = true;
-
-    const filename = document.createElement("span");
-
-    filename.className = "selene-upload-filename";
-    filename.textContent = "No image selected";
-    filename.style.cssText = `
-      font-size:12px;
-      opacity:0.75;
-      overflow-wrap:anywhere;
-    `;
-
-    uploadButton.addEventListener("click", () => {
-      if (!isAiProcessing) fileInput.click();
-    });
-
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files?.[0] || null;
-
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        filename.textContent = "Unsupported file type.";
-        fileInput.value = "";
-        return;
-      }
-
-      if (file.size > MAX_IMAGE_SIZE) {
-        filename.textContent = "Image exceeds the 8 MB limit.";
-        fileInput.value = "";
-        return;
-      }
-
-      filename.textContent = `Selected: ${file.name}`;
-
-      wrapper.dispatchEvent(
-        new CustomEvent("selene-image-selected", {
-          detail: { file }
-        })
-      );
-    });
-
-    wrapper.append(uploadButton, fileInput, filename);
-
-    textarea.insertAdjacentElement(position, wrapper);
-
-    return {
-      wrapper,
-      fileInput,
-      filename
-    };
+    return "question";
   }
 
   // =========================================================
-  // 11. LOCAL OCR
+  // 11. VALIDATE ACADEMIC IMAGE UPLOAD
+  // =========================================================
+
+  function isSupportedAcademicImage(file) {
+    if (!file) return false;
+
+    if (!academicImageTypes.includes(file.type)) {
+      alert(
+        "Unsupported file format. Upload JPG, PNG, WEBP or BMP."
+      );
+
+      return false;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert(
+        "The image is too large. Maximum allowed size is 8 MB."
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
+  function requestAcademicImageConfirmation(file) {
+    if (!isSupportedAcademicImage(file)) {
+      return false;
+    }
+
+    const confirmed = window.confirm(
+      "Is this image related to academic or research work?\n\n" +
+      "Examples:\n" +
+      "- Textbook pages\n" +
+      "- Handwritten answers\n" +
+      "- Mathematical solutions\n" +
+      "- Worksheets\n" +
+      "- Academic diagrams\n" +
+      "- Study notes"
+    );
+
+    if (!confirmed) {
+      return false;
+    }
+
+    selectedAcademicImage = file;
+    extractedImageText = "";
+    academicImagePurpose = "academic material";
+
+    return true;
+  }
+
+  // =========================================================
+  // 12. LOAD LOCAL OCR ENGINE
   // =========================================================
 
   function loadTesseract() {
@@ -979,32 +893,45 @@ use its subject-specific instructions.
       return tesseractLoadingPromise;
     }
 
-    tesseractLoadingPromise = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
+    tesseractLoadingPromise = new Promise(
+      (resolve, reject) => {
+        const script = document.createElement("script");
 
-      script.src = TESSERACT_SCRIPT;
-      script.async = true;
+        script.src = TESSERACT_SCRIPT;
+        script.async = true;
 
-      script.onload = () => {
-        if (window.Tesseract) {
-          resolve(window.Tesseract);
-        } else {
-          reject(new Error("Tesseract.js failed to initialise."));
-        }
-      };
+        script.onload = () => {
+          if (window.Tesseract) {
+            resolve(window.Tesseract);
+          } else {
+            reject(
+              new Error("OCR engine failed to initialise.")
+            );
+          }
+        };
 
-      script.onerror = () => {
-        tesseractLoadingPromise = null;
-        reject(new Error("Could not load the OCR engine."));
-      };
+        script.onerror = () => {
+          reject(
+            new Error("Unable to load the OCR engine.")
+          );
+        };
 
-      document.head.appendChild(script);
-    });
+        document.head.appendChild(script);
+      }
+    );
 
     return tesseractLoadingPromise;
   }
 
-  async function extractImageText(file) {
+  // =========================================================
+  // 13. EXTRACT TEXT FROM UPLOADED IMAGE
+  // =========================================================
+
+  async function extractAcademicImageText(file) {
+    if (!file || !isSupportedAcademicImage(file)) {
+      throw new Error("Invalid academic image.");
+    }
+
     const Tesseract = await loadTesseract();
 
     const result = await Tesseract.recognize(
@@ -1014,729 +941,1130 @@ use its subject-specific instructions.
         logger: (message) => {
           if (message.status === "recognizing text") {
             console.log(
-              "Selené OCR progress:",
-              Math.round((message.progress || 0) * 100) + "%"
+              "[J.A.C.E. OCR]",
+              Math.round(message.progress * 100) + "%"
             );
           }
         }
       }
     );
 
-    const text = result.data?.text?.trim() || "";
-    const confidence = Number(result.data?.confidence || 0);
+    const text = result?.data?.text?.trim() || "";
 
-    return {
-      text,
-      confidence
-    };
+    extractedImageText = text;
+
+    return text;
   }
 
   // =========================================================
-  // 12. OPTIONAL EXTERNAL VISION
+  // 14. STUDENT ANSWER EVALUATION
   // =========================================================
 
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+  function buildAnswerEvaluationPrompt(extractedText) {
+    return `
+STUDENT ANSWER EVALUATION MODE
 
-      reader.onload = () => {
-        const result = String(reader.result || "");
-        resolve(result.split(",")[1] || "");
-      };
+The uploaded material contains a student's attempted answer
+or academic solution.
 
-      reader.onerror = () => {
-        reject(new Error("Could not read the selected image."));
-      };
+Evaluate the work carefully and objectively.
 
-      reader.readAsDataURL(file);
-    });
+EVALUATION REQUIREMENTS:
+
+1. Identify the question being answered, if visible.
+
+2. Identify the student's actual answer.
+
+3. Check factual accuracy and conceptual understanding.
+
+4. For mathematics and numerical problems:
+   - Check every calculation.
+   - Verify formulas.
+   - Check substitutions.
+   - Check units.
+   - Check intermediate steps.
+   - Identify the exact point where an error occurs.
+
+5. For theoretical subjects:
+   - Check factual correctness.
+   - Check whether essential points are included.
+   - Identify irrelevant or incorrect statements.
+   - Check terminology and explanation.
+
+6. For language and translation:
+   - Check grammar.
+   - Check meaning.
+   - Check sentence structure.
+   - Identify incorrect word usage.
+
+7. Never mark a correct answer as incorrect merely because
+   it uses different wording or a different valid method.
+
+8. Never invent marks, marking schemes or teacher expectations.
+
+9. If the question or answer is incomplete or unreadable,
+   clearly state what information is missing.
+
+RESPONSE FORMAT:
+
+A. QUESTION IDENTIFICATION
+State the question if it can be read.
+
+B. OVERALL ASSESSMENT
+Give a concise assessment of the submitted work.
+
+C. CORRECT PARTS
+Identify what the student did correctly.
+
+D. ERRORS AND MISSING POINTS
+Identify mistakes individually.
+Explain why each mistake is incorrect.
+
+E. CORRECTIONS
+Show the correct steps or statements.
+
+F. IMPROVED ANSWER
+Provide a complete corrected answer when possible.
+
+G. FINAL VERDICT
+State whether the answer is:
+- Correct
+- Partially correct
+- Incorrect
+- Insufficient information
+
+MARKING:
+Only assign marks when the maximum marks or marking scheme
+is supplied or clearly visible.
+Never invent a marking scheme.
+
+OCR LIMITATION:
+The extracted text may contain recognition errors.
+Do not silently assume uncertain symbols or words are correct.
+
+UPLOADED MATERIAL:
+
+${extractedText}
+`;
   }
 
-  async function analyseWithExternalVision(file, userQuery) {
-    if (!VISION_API_ENDPOINT) {
+  // =========================================================
+  // 15. STUDY MATERIAL ANALYSIS
+  // =========================================================
+
+  function buildStudyMaterialPrompt(extractedText) {
+    return `
+ACADEMIC STUDY MATERIAL ANALYSIS
+
+Analyse the following material for academic purposes.
+
+Determine whether it contains:
+- A question
+- Study notes
+- A worksheet
+- A mathematical solution
+- An academic explanation
+- A diagram description
+- Other academic content
+
+Then respond according to the user's actual request.
+
+REQUIREMENTS:
+
+1. Preserve the meaning of the supplied material.
+2. Do not invent unreadable content.
+3. Explain difficult concepts clearly.
+4. Correct factual errors when asked.
+5. Separate extracted information from your own explanation.
+6. Ask for clarification if essential information is missing.
+
+EXTRACTED MATERIAL:
+
+${extractedText}
+`;
+  }
+
+  // =========================================================
+  // 16. ACADEMIC IMAGE CONTEXT BUILDER
+  // =========================================================
+
+  function buildAcademicImageContext(
+    extractedText,
+    purpose = "academic material"
+  ) {
+    if (!extractedText || !extractedText.trim()) {
       return "";
     }
 
-    const imageBase64 = await fileToBase64(file);
+    if (purpose === "answer") {
+      return buildAnswerEvaluationPrompt(extractedText);
+    }
 
-    const response = await fetch(VISION_API_ENDPOINT, {
-      method: "POST",
+    return buildStudyMaterialPrompt(extractedText);
+  }
 
-      headers: {
-        "Content-Type": "application/json"
+  // =========================================================
+  // 17. ACADEMIC DIAGRAM REQUEST DETECTION
+  // =========================================================
+
+  function isAcademicDiagramRequest(query) {
+    const text = String(query || "").toLowerCase();
+
+    const diagramTerms = [
+      "draw a diagram",
+      "generate a diagram",
+      "show a diagram",
+      "make a diagram",
+      "labelled diagram",
+      "labeled diagram",
+      "draw a graph",
+      "plot a graph",
+      "plot the graph",
+      "draw a circuit",
+      "flowchart",
+      "schematic diagram",
+      "structure of",
+      "illustrate"
+    ];
+
+    return diagramTerms.some((term) =>
+      text.includes(term)
+    );
+  }
+
+  // =========================================================
+  // 18. ACADEMIC TEXT-BASED DIAGRAM INSTRUCTIONS
+  // =========================================================
+
+  function buildAcademicDiagramPrompt(query) {
+    return `
+ACADEMIC DIAGRAM GENERATION MODE
+
+The user has requested an academic diagram or graph.
+
+Create the most suitable academic representation of the
+requested concept.
+
+REQUIREMENTS:
+
+1. Make the diagram scientifically and academically accurate.
+
+2. Include relevant labels and terminology.
+
+3. Maintain correct relationships, directions and proportions
+   wherever they matter.
+
+4. Use clear titles and organised sections.
+
+5. For graphs, identify:
+   - X-axis
+   - Y-axis
+   - Axis labels
+   - Units
+   - Important points
+   - Scale, where applicable
+
+6. For flowcharts, use a logical sequence and clear arrows.
+
+7. For scientific diagrams, include the important structures
+   and their correct labels.
+
+8. For mathematical diagrams, preserve mathematical accuracy.
+
+9. Do not invent experimental data or measurements.
+
+10. If essential information is missing, state the assumption.
+
+OUTPUT:
+Provide a clear, labelled academic diagram using the
+available text-based diagram format.
+
+Use Mermaid syntax when a flowchart or relationship diagram
+is suitable. Use mathematical notation and structured text
+when those are more appropriate.
+
+USER REQUEST:
+
+${query}
+`;
+  }
+
+  // =========================================================
+  // 19. ACADEMIC IMAGE PROCESSING
+  // =========================================================
+
+  async function processAcademicImage(file, purpose = "question") {
+    if (!file) {
+      throw new Error("No image was selected.");
+    }
+
+    if (!selectedAcademicImage) {
+      throw new Error(
+        "Please confirm the academic purpose of the image."
+      );
+    }
+
+    academicImagePurpose =
+      academicImagePurposes[purpose] || "academic material";
+
+    const text = await extractAcademicImageText(file);
+
+    if (!text) {
+      return {
+        success: false,
+        method: "local-ocr",
+        text: "",
+        context: "",
+        message:
+          "No readable text was extracted. " +
+          "The image may require visual interpretation."
+      };
+    }
+
+    return {
+      success: true,
+      method: "local-ocr",
+      purpose: purpose,
+      text: text,
+      context: buildAcademicImageContext(
+        text,
+        purpose
+      )
+    };
+  }
+
+  // =========================================================
+  // 20. OPTIONAL EXTERNAL VISION CONSENT
+  // =========================================================
+
+  async function requestExternalVisionConsent() {
+    if (!VISION_API_ENDPOINT) {
+      return false;
+    }
+
+    return window.confirm(
+      "Local OCR could not reliably understand this image.\n\n" +
+      "Do you explicitly approve sending it to the configured " +
+      "external vision service?\n\n" +
+      "The image will leave your device."
+    );
+  }
+
+  // =========================================================
+  // 21. IMAGE STATE RESET
+  // =========================================================
+
+  function clearAcademicImageState() {
+    selectedAcademicImage = null;
+    extractedImageText = "";
+    academicImagePurpose = null;
+  }
+
+  // =========================================================
+  // 22. ACADEMIC INPUT CLASSIFICATION
+  // =========================================================
+
+  function classifyAcademicInput(query) {
+    const text = String(query || "").toLowerCase();
+
+    if (isAcademicDiagramRequest(text)) {
+      return "diagram";
+    }
+
+    if (
+      /\b(check|evaluate|correct|mark|review)\b/.test(text) &&
+      /\b(answer|solution|working|response)\b/.test(text)
+    ) {
+      return "answer-evaluation";
+    }
+
+    return "academic-question";
+  }
+    // =========================================================
+  // 23. EVALUATION SYSTEM
+  // =========================================================
+
+  const JACE_EVALUATION = {
+    enabled: true,
+
+    criteria: {
+      accuracy: {
+        label: "Accuracy",
+        weight: 25
       },
 
-      body: JSON.stringify({
-        image_base64: imageBase64,
-        mime_type: file.type,
-        prompt: `
-Read and analyse this image carefully.
+      relevance: {
+        label: "Relevance",
+        weight: 15
+      },
 
-Recognise handwritten and printed text.
-Transcribe mathematical symbols accurately.
-Identify equations, questions and relevant information.
-Describe any relevant diagram in words.
-Mark uncertain or unreadable portions clearly.
+      subjectKnowledge: {
+        label: "Subject knowledge",
+        weight: 20
+      },
 
-User's additional request:
-${userQuery || "Read and analyse the image."}
+      clarity: {
+        label: "Step-by-step clarity",
+        weight: 15
+      },
 
-Return extracted information as plain text.
-`
-      })
-    });
+      completeness: {
+        label: "Completeness",
+        weight: 10
+      },
 
-    if (!response.ok) {
-      throw new Error(
-        `Vision service returned HTTP ${response.status}.`
-      );
+      instructionFollowing: {
+        label: "Instruction following",
+        weight: 10
+      },
+
+      reliability: {
+        label: "Reliability",
+        weight: 5
+      }
+    },
+
+    minimumAcceptableScore: 75
+  };
+
+  // =========================================================
+  // 24. RESPONSE PERFORMANCE TRACKER
+  // =========================================================
+
+  let jacePerformance = {
+    requestStartedAt: 0,
+    firstTokenAt: 0,
+    responseFinishedAt: 0,
+
+    timeToFirstToken: 0,
+    totalResponseTime: 0,
+
+    promptTokens: 0,
+    responseTokens: 0,
+
+    loadDuration: 0,
+    promptEvaluationDuration: 0,
+    generationDuration: 0,
+
+    tokensPerSecond: 0,
+
+    requestCount: 0,
+    failedRequests: 0
+  };
+
+  function startJacePerformanceTracking() {
+    jacePerformance.requestStartedAt = performance.now();
+
+    jacePerformance.firstTokenAt = 0;
+    jacePerformance.responseFinishedAt = 0;
+
+    jacePerformance.timeToFirstToken = 0;
+    jacePerformance.totalResponseTime = 0;
+
+    jacePerformance.promptTokens = 0;
+    jacePerformance.responseTokens = 0;
+
+    jacePerformance.loadDuration = 0;
+    jacePerformance.promptEvaluationDuration = 0;
+    jacePerformance.generationDuration = 0;
+
+    jacePerformance.tokensPerSecond = 0;
+  }
+
+  function recordJaceFirstToken() {
+    if (!jacePerformance.firstTokenAt) {
+      jacePerformance.firstTokenAt = performance.now();
+
+      jacePerformance.timeToFirstToken =
+        jacePerformance.firstTokenAt -
+        jacePerformance.requestStartedAt;
+    }
+  }
+
+  function finishJacePerformanceTracking(ollamaData = {}) {
+    jacePerformance.responseFinishedAt = performance.now();
+
+    jacePerformance.totalResponseTime =
+      jacePerformance.responseFinishedAt -
+      jacePerformance.requestStartedAt;
+
+    jacePerformance.promptTokens =
+      Number(ollamaData.prompt_eval_count || 0);
+
+    jacePerformance.responseTokens =
+      Number(ollamaData.eval_count || 0);
+
+    jacePerformance.loadDuration =
+      Number(ollamaData.load_duration || 0);
+
+    jacePerformance.promptEvaluationDuration =
+      Number(ollamaData.prompt_eval_duration || 0);
+
+    jacePerformance.generationDuration =
+      Number(ollamaData.eval_duration || 0);
+
+    if (
+      jacePerformance.generationDuration > 0 &&
+      jacePerformance.responseTokens > 0
+    ) {
+      jacePerformance.tokensPerSecond =
+        jacePerformance.responseTokens /
+        (jacePerformance.generationDuration / 1e9);
     }
 
-    const data = await response.json();
+    jacePerformance.requestCount++;
 
-    return String(
-      data.text || data.extracted_text || ""
-    ).trim();
+    return getJacePerformanceReport();
+  }
+
+  function recordJaceFailedRequest() {
+    jacePerformance.failedRequests++;
   }
 
   // =========================================================
-  // 13. IMAGE ANALYSIS ORCHESTRATION
+  // 25. PERFORMANCE REPORT
   // =========================================================
 
-  async function analyseUploadedImage(file, userQuery) {
-    if (!file) return "";
+  function getJacePerformanceReport() {
+    return {
+      firstTokenMilliseconds:
+        Math.round(jacePerformance.timeToFirstToken),
 
-    if (subtitleOutput) {
-      subtitleOutput.textContent =
-        "Selené is reading your image...";
-    }
+      totalMilliseconds:
+        Math.round(jacePerformance.totalResponseTime),
 
-    let ocrResult = {
-      text: "",
-      confidence: 0
+      promptTokens:
+        jacePerformance.promptTokens,
+
+      responseTokens:
+        jacePerformance.responseTokens,
+
+      modelLoadMilliseconds:
+        Math.round(jacePerformance.loadDuration / 1e6),
+
+      promptProcessingMilliseconds:
+        Math.round(
+          jacePerformance.promptEvaluationDuration / 1e6
+        ),
+
+      generationMilliseconds:
+        Math.round(jacePerformance.generationDuration / 1e6),
+
+      tokensPerSecond:
+        Number(
+          jacePerformance.tokensPerSecond.toFixed(2)
+        ),
+
+      completedRequests:
+        jacePerformance.requestCount,
+
+      failedRequests:
+        jacePerformance.failedRequests
     };
+  }
 
-    let ocrError = null;
+  // =========================================================
+  // 26. PERFORMANCE DISPLAY
+  // =========================================================
 
-    try {
-      ocrResult = await extractImageText(file);
-    } catch (error) {
-      ocrError = error;
-      console.warn("Local OCR error:", error);
-    }
-
-    const needsVision =
-      !ocrResult.text ||
-      ocrResult.confidence < 45;
-
-    if (needsVision && VISION_API_ENDPOINT) {
-      try {
-        const visionText =
-          await analyseWithExternalVision(file, userQuery);
-
-        if (visionText) {
-          return `
-IMAGE ANALYSIS — EXTERNAL VISION
-
-${visionText}
-
-Local OCR transcription:
-${ocrResult.text || "No reliable text extracted."}
-`;
-        }
-
-      } catch (error) {
-        console.warn("External vision error:", error);
-
-        if (!ocrResult.text) {
-          throw new Error(
-            "Both image-reading methods failed. " +
-            error.message
-          );
-        }
-      }
-    }
-
-    if (!ocrResult.text) {
-      throw new Error(
-        ocrError
-          ? "I could not read this image. Please try a clearer photograph or configure the optional vision service."
-          : "No readable text was found in this image."
-      );
-    }
-
+  function formatJacePerformanceReport(report) {
     return `
-IMAGE ANALYSIS — LOCAL OCR
+J.A.C.E. 001 — PERFORMANCE REPORT
 
-OCR confidence: ${ocrResult.confidence.toFixed(1)}%
+First token:
+${report.firstTokenMilliseconds} ms
 
-Extracted text:
-${ocrResult.text}
+Total response time:
+${report.totalMilliseconds} ms
+
+Model loading:
+${report.modelLoadMilliseconds} ms
+
+Prompt processing:
+${report.promptProcessingMilliseconds} ms
+
+Response generation:
+${report.generationMilliseconds} ms
+
+Prompt tokens:
+${report.promptTokens}
+
+Generated tokens:
+${report.responseTokens}
+
+Generation speed:
+${report.tokensPerSecond} tokens/second
+
+Completed requests:
+${report.completedRequests}
+
+Failed requests:
+${report.failedRequests}
+`;
+  }
+
+  // =========================================================
+  // 27. RESPONSE QUALITY EVALUATION
+  // =========================================================
+
+  function buildResponseEvaluationPrompt(
+    question,
+    answer,
+    domain = "general"
+  ) {
+    return `
+J.A.C.E. 001 — RESPONSE QUALITY EVALUATION
+
+You are evaluating an academic AI response.
+
+SUBJECT:
+${domain}
+
+ORIGINAL QUESTION:
+${question}
+
+GENERATED RESPONSE:
+${answer}
+
+Evaluate the response using these criteria:
+
+1. ACCURACY — 25 points
+Check whether the information, equations, calculations,
+facts and explanations are correct.
+
+2. RELEVANCE — 15 points
+Check whether the response answers the actual question.
+
+3. SUBJECT KNOWLEDGE — 20 points
+Check whether the response demonstrates appropriate
+subject-specific understanding.
+
+4. CLARITY — 15 points
+Check whether the explanation is understandable and
+organised into logical steps.
+
+5. COMPLETENESS — 10 points
+Check whether important parts of the question have
+been addressed.
+
+6. INSTRUCTION FOLLOWING — 10 points
+Check whether the response follows the user's instructions.
+
+7. RELIABILITY — 5 points
+Check whether uncertainty, assumptions and limitations
+are handled honestly.
 
 IMPORTANT:
-The extracted text may contain recognition mistakes.
-Check the original handwriting or symbols before solving.
-If a character is uncertain, ask the user to clarify it.
+
+- Do not award points simply because an answer sounds confident.
+- Verify calculations and factual claims.
+- Do not invent sources or evidence.
+- Identify unsupported claims.
+- Do not assume that a long answer is a good answer.
+- Do not assume that a short answer is a bad answer.
+- If the available information is insufficient to verify a claim,
+  say so explicitly.
+
+OUTPUT FORMAT:
+
+Criterion-wise assessment:
+Give a score for each criterion.
+
+Total score:
+Give a score out of 100.
+
+Strengths:
+List the strongest aspects.
+
+Weaknesses:
+Identify specific problems.
+
+Required improvements:
+Explain what must be corrected.
+
+Final verdict:
+State whether the response meets the expected standard.
+
+This evaluation must be honest and evidence-based.
 `;
   }
 
   // =========================================================
-  // 14. MODULE WORKSPACES
+  // 28. EVALUATION RECORDS
   // =========================================================
 
-  const moduleGrid =
-    document.querySelector(".module-grid");
+  const jaceEvaluationRecords = [];
 
-  const activeDomainContainer =
-    document.getElementById("activeDomainContainer");
-
-  const greetingHeading =
-    document.getElementById("welcomeGreeting");
-
-  const subtitleOutput =
-    document.getElementById("subtitleOutput");
-
-  document.querySelectorAll(".module-card").forEach((card) => {
-    card.addEventListener("click", () => {
-      if (isAiProcessing) return;
-
-      const domain = card.dataset.domain;
-      const spec = domainSpecs[domain];
-
-      if (!spec) return;
-
-      currentDomain = domain;
-
-      moduleGrid?.classList.add("hidden");
-
-      if (greetingHeading) {
-        greetingHeading.textContent = spec.title;
-      }
-
-      if (subtitleOutput) {
-        subtitleOutput.textContent = spec.subtitle;
-      }
-
-      renderWorkspace(domain, spec);
-    });
-  });
-
-  function escapeAttribute(value) {
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
-  }
-
-  function createStopButton(executeButton) {
-    if (!executeButton) return null;
-
-    const button = document.createElement("button");
-
-    button.type = "button";
-    button.className = executeButton.className;
-    button.classList.add("stop-generation-btn");
-
-    button.textContent = "Stop Generation";
-    button.hidden = true;
-
-    button.style.marginLeft = "8px";
-
-    button.addEventListener("click", stopAiGeneration);
-
-    executeButton.insertAdjacentElement("afterend", button);
-
-    return button;
-  }
-
-  function setStopButtonsVisible(visible) {
-    if (mainStopButton) {
-      mainStopButton.hidden = !visible;
-    }
-
-    if (activeWorkspaceStopButton) {
-      activeWorkspaceStopButton.hidden = !visible;
-    }
-  }
-
-  function renderWorkspace(domain, spec) {
-    if (!activeDomainContainer) return;
-
-    activeDomainContainer.innerHTML = `
-      <div class="workspace-panel">
-
-        <div class="workspace-header">
-
-          <span class="active-tag">
-            MODE: ${domain.toUpperCase()}
-          </span>
-
-          <button
-            id="backToHomeBtn"
-            class="back-btn"
-            type="button"
-          >
-            ← Return to Modules
-          </button>
-
-        </div>
-
-        <div class="workspace-body">
-
-          <div class="input-console">
-
-            <textarea
-              id="domainQueryInput"
-              spellcheck="true"
-              placeholder="${escapeAttribute(spec.placeholder)}"
-              aria-label="Question or text for ${escapeAttribute(spec.title)}"
-            ></textarea>
-
-            <button
-              id="submitQueryBtn"
-              class="execute-btn"
-              type="button"
-            >
-              Execute Query
-            </button>
-
-          </div>
-
-          <p class="demo-note">
-            Workspace active: Selené AI engine connected.
-          </p>
-
-        </div>
-
-      </div>
-    `;
-
-    activeDomainContainer.classList.remove("hidden");
-
-    document.getElementById("backToHomeBtn")
-      ?.addEventListener("click", returnHome);
-
-    activeWorkspaceInput =
-      document.getElementById("domainQueryInput");
-
-    activeWorkspaceButton =
-      document.getElementById("submitQueryBtn");
-
-    activeWorkspaceStopButton =
-      createStopButton(activeWorkspaceButton);
-
-    const uploadControls =
-      createUploadControls(activeWorkspaceInput);
-
-    uploadControls?.wrapper.addEventListener(
-      "selene-image-selected",
-      (event) => {
-        activeWorkspaceFile = event.detail.file;
-      }
-    );
-
-    activeWorkspaceButton?.addEventListener("click", () => {
-      submitQuery(
-        domain,
-        activeWorkspaceInput?.value,
-        activeWorkspaceFile
-      );
-    });
-
-    activeWorkspaceInput?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-
-        submitQuery(
-          domain,
-          activeWorkspaceInput.value,
-          activeWorkspaceFile
-        );
-      }
-    });
-  }
-
-  function returnHome() {
-    if (isAiProcessing) return;
-
-    currentDomain = null;
-
-    activeWorkspaceButton = null;
-    activeWorkspaceInput = null;
-    activeWorkspaceStopButton = null;
-    activeWorkspaceFile = null;
-
-    activeDomainContainer?.classList.add("hidden");
-
-    if (activeDomainContainer) {
-      activeDomainContainer.innerHTML = "";
-    }
-
-    moduleGrid?.classList.remove("hidden");
-
-    if (greetingHeading) {
-      greetingHeading.textContent =
-        "What can I help you with today?";
-    }
-
-    if (subtitleOutput) {
-      subtitleOutput.textContent =
-        '"Hello. I am Selené. Select a specialised module to begin."';
-    }
-  }
-
-  // =========================================================
-  // 15. SUBJECT ROUTING
-  // =========================================================
-
-  function submitQuery(domain, rawInput, imageFile = null) {
-    const userInput = (rawInput || "").trim();
-
-    if ((!userInput && !imageFile) || isAiProcessing) return;
-
-    if (domain !== currentDomain) return;
-
-    handleAiQuery(userInput, domain, imageFile);
-  }
-
-  function checkModuleMismatch(query, activeDomain) {
-    if (!activeDomain || !query) return null;
-
-    const detectedDomain = detectSubject(query);
-
-    if (!detectedDomain || detectedDomain === activeDomain) {
-      return null;
-    }
-
-    return detectedDomain;
-  }
-
-  // =========================================================
-  // 16. GENERAL CHAT
-  // =========================================================
-
-  const mainExecuteBtn = document.querySelector(
-    ".input-console-container .execute-btn"
-  );
-
-  const mainTextarea = document.querySelector(
-    ".input-console-container textarea"
-  );
-
-  mainStopButton = createStopButton(mainExecuteBtn);
-
-  const mainUploadControls =
-    createUploadControls(mainTextarea);
-
-  mainUploadControls?.wrapper.addEventListener(
-    "selene-image-selected",
-    (event) => {
-      mainFile = event.detail.file;
-    }
-  );
-
-  mainExecuteBtn?.addEventListener("click", () => {
-    handleAiQuery(
-      mainTextarea?.value || "",
-      null,
-      mainFile
-    );
-  });
-
-  mainTextarea?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-
-      handleAiQuery(
-        mainTextarea.value,
-        null,
-        mainFile
-      );
-    }
-  });
-
-  // =========================================================
-  // 17. STOP GENERATION
-  // =========================================================
-
-  function stopAiGeneration() {
-    if (currentAiController) {
-      currentAiController.abort();
-    }
-  }
-
-  // =========================================================
-  // 18. OLLAMA STREAMING
-  // =========================================================
-
-  async function readStreamingResponse(
-    response,
-    onText,
-    signal
-  ) {
-    if (!response.body) {
-      throw new Error(
-        "Streaming is not supported by this browser."
-      );
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    // TEMPORARY PERFORMANCE DIAGNOSTICS: stream timing only.
-    const streamStartedAt = performance.now();
-    let firstTokenLogged = false;
-
-    let buffer = "";
-    let completeText = "";
-    let finished = false;
-
-    function processLine(line) {
-      const trimmed = line.trim();
-
-      if (!trimmed) return;
-
-      let data;
-
-      try {
-        data = JSON.parse(trimmed);
-      } catch {
-        return;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const content = data.message?.content || "";
-
-      if (content) {
-        if (!firstTokenLogged) {
-          firstTokenLogged = true;
-          console.log(
-            `[J.A.C.E. DIAGNOSTICS] First token after stream start: ${((performance.now() - streamStartedAt) / 1000).toFixed(3)} seconds`
-          );
-        }
-
-        completeText += content;
-        onText(content, completeText);
-      }
-
-      if (data.done) {
-        const seconds = value =>
-          typeof value === "number" ? (value / 1e9).toFixed(3) : "unavailable";
-
-        console.log("[J.A.C.E. DIAGNOSTICS] Ollama metrics:", {
-          load_seconds: seconds(data.load_duration),
-          prompt_processing_seconds: seconds(data.prompt_eval_duration),
-          generation_seconds: seconds(data.eval_duration),
-          prompt_tokens: data.prompt_eval_count ?? "unavailable",
-          generated_tokens: data.eval_count ?? "unavailable"
-        });
-
-        finished = true;
-      }
-    }
-
-    try {
-      while (!finished) {
-        if (signal?.aborted) break;
-
-        const { value, done } = await reader.read();
-
-        if (done) break;
-
-        buffer += decoder.decode(value, {
-          stream: true
-        });
-
-        const lines = buffer.split("\n");
-
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          processLine(line);
-
-          if (finished) break;
-        }
-      }
-
-      if (!signal?.aborted) {
-        buffer += decoder.decode();
-
-        if (buffer.trim()) {
-          processLine(buffer);
-        }
-      }
-
-    } catch (error) {
-      try {
-        await reader.cancel();
-      } catch {
-        // Ignore cancellation errors.
-      }
-
-      if (error.name !== "AbortError") {
-        throw error;
-      }
-    }
-
-    if (signal?.aborted) {
-      return completeText.trim();
-    }
-
-    if (!completeText.trim()) {
-      throw new Error("Ollama returned an empty response.");
-    }
-
-    return completeText.trim();
-  }
-
-  // =========================================================
-  // 19. MAIN AI REQUEST
-  // =========================================================
-
-  async function handleAiQuery(
-    userQuery,
-    domain = null,
-    imageFile = null
-  ) {
-    const query = (userQuery || "").trim();
-
-    if ((!query && !imageFile) || isAiProcessing) return;
-
-    // Check the active subject before sending the question.
-    const mismatch = checkModuleMismatch(query, domain);
-
-    if (mismatch) {
-      const recommended =
-        getModuleRecommendation(mismatch);
-
-      if (subtitleOutput) {
-        subtitleOutput.textContent =
-          `This question belongs to ${recommended}. Please switch to the ${domainSpecs[mismatch].title} for a specialised answer.`;
-      }
-
+  function saveJaceEvaluation(record) {
+    if (!record || typeof record !== "object") {
       return;
     }
 
-    isAiProcessing = true;
+    const evaluationRecord = {
+      timestamp: new Date().toISOString(),
 
-    const requestController = new AbortController();
+      subject: record.subject || "general",
 
-    currentAiController = requestController;
+      question: record.question || "",
 
-    const signal = requestController.signal;
+      answer: record.answer || "",
 
-    const avatar =
-      document.getElementById("avatarViewport");
+      score: Number.isFinite(Number(record.score))
+        ? Number(record.score)
+        : null,
 
-    avatar?.classList.add("speaking");
+      accuracy: record.accuracy ?? null,
 
-    if (mainExecuteBtn) mainExecuteBtn.disabled = true;
+      relevance: record.relevance ?? null,
 
-    if (activeWorkspaceButton) {
-      activeWorkspaceButton.disabled = true;
-    }
+      subjectKnowledge: record.subjectKnowledge ?? null,
 
-    if (mainTextarea) mainTextarea.disabled = true;
+      clarity: record.clarity ?? null,
 
-    if (activeWorkspaceInput) {
-      activeWorkspaceInput.disabled = true;
-    }
+      completeness: record.completeness ?? null,
 
-    setStopButtonsVisible(true);
+      instructionFollowing:
+        record.instructionFollowing ?? null,
 
-    if (!domain && mainTextarea) {
-      mainTextarea.value = "";
-    }
+      reliability: record.reliability ?? null,
 
-    if (domain && activeWorkspaceInput) {
-      activeWorkspaceInput.value = "";
-    }
-
-    const selectedHistory =
-      domain && conversationHistories[domain]
-        ? domain
-        : "general";
-
-    const activeHistory =
-      conversationHistories[selectedHistory];
-
-    const userMessage = {
-      role: "user",
-      content: query || "Please analyse the uploaded image."
+      notes: record.notes || ""
     };
 
-    activeHistory.push(userMessage);
+    jaceEvaluationRecords.push(evaluationRecord);
 
-    let assistantResponse = "";
+    return evaluationRecord;
+  }
+
+  // =========================================================
+  // 29. EVALUATION SUMMARY
+  // =========================================================
+
+  function getJaceEvaluationSummary() {
+    const total = jaceEvaluationRecords.length;
+
+    if (total === 0) {
+      return {
+        totalEvaluations: 0,
+        averageScore: null,
+        passingEvaluations: 0,
+        failingEvaluations: 0,
+        message: "No evaluation records are available."
+      };
+    }
+
+    const scoredRecords = jaceEvaluationRecords.filter(
+      record => Number.isFinite(record.score)
+    );
+
+    const averageScore = scoredRecords.length
+      ? scoredRecords.reduce(
+          (sum, record) => sum + record.score,
+          0
+        ) / scoredRecords.length
+      : null;
+
+    const passing = scoredRecords.filter(
+      record =>
+        record.score >= JACE_EVALUATION.minimumAcceptableScore
+    ).length;
+
+    return {
+      totalEvaluations: total,
+
+      averageScore: averageScore === null
+        ? null
+        : Number(averageScore.toFixed(2)),
+
+      passingEvaluations: passing,
+
+      failingEvaluations:
+        scoredRecords.length - passing,
+
+      message:
+        averageScore === null
+          ? "Evaluations have not received numerical scores."
+          : averageScore >=
+            JACE_EVALUATION.minimumAcceptableScore
+            ? "The average score meets the target."
+            : "The average score is below the target."
+    };
+  }
+
+  // =========================================================
+  // 30. ACADEMIC BENCHMARK QUESTIONS
+  // =========================================================
+
+  const JACE_BENCHMARKS = {
+    mathematics: [
+      {
+        id: "MATH-001",
+        question:
+          "Solve 2x + 5 = 17 and explain every step.",
+        expectedSkills: [
+          "algebra",
+          "equation solving",
+          "stepwise reasoning"
+        ]
+      },
+      {
+        id: "MATH-002",
+        question:
+          "Differentiate x^3 + 4x^2 - 7x + 2.",
+        expectedSkills: [
+          "calculus",
+          "power rule",
+          "symbolic accuracy"
+        ]
+      }
+    ],
+
+    quantum: [
+      {
+        id: "QUANTUM-001",
+        question:
+          "Explain the physical meaning of a wave function.",
+        expectedSkills: [
+          "quantum mechanics",
+          "probability interpretation",
+          "conceptual clarity"
+        ]
+      }
+    ],
+
+    physics: [
+      {
+        id: "PHYSICS-001",
+        question:
+          "Explain Newton's second law and solve a basic force problem.",
+        expectedSkills: [
+          "mechanics",
+          "formula application",
+          "units"
+        ]
+      }
+    ],
+
+    chemistry: [
+      {
+        id: "CHEM-001",
+        question:
+          "Explain covalent bonding and distinguish it from ionic bonding.",
+        expectedSkills: [
+          "chemical bonding",
+          "electron sharing",
+          "conceptual comparison"
+        ]
+      }
+    ],
+
+    biology: [
+      {
+        id: "BIO-001",
+        question:
+          "Explain the process of photosynthesis and its importance.",
+        expectedSkills: [
+          "biological processes",
+          "scientific terminology",
+          "sequence"
+        ]
+      }
+    ],
+
+    history: [
+      {
+        id: "HISTORY-001",
+        question:
+          "Explain the major causes and consequences of the French Revolution.",
+        expectedSkills: [
+          "historical accuracy",
+          "causal analysis",
+          "chronology"
+        ]
+      }
+    ],
+
+    psychology: [
+      {
+        id: "PSYCH-001",
+        question:
+          "Explain classical conditioning with an appropriate example.",
+        expectedSkills: [
+          "psychological concepts",
+          "terminology",
+          "application"
+        ]
+      }
+    ],
+
+    translation: [
+      {
+        id: "TRANS-001",
+        question:
+          "Translate a short paragraph while preserving its original meaning and tone.",
+        expectedSkills: [
+          "meaning preservation",
+          "grammar",
+          "context"
+        ]
+      }
+    ]
+  };
+
+  // =========================================================
+  // 31. BENCHMARK ACCESS
+  // =========================================================
+
+  function getJaceBenchmarkQuestions(domain) {
+    const key = String(domain || "").toLowerCase();
+
+    return JACE_BENCHMARKS[key] || [];
+  }
+
+  function getAllJaceBenchmarkQuestions() {
+    return Object.entries(JACE_BENCHMARKS).flatMap(
+      ([subject, questions]) =>
+        questions.map(question => ({
+          ...question,
+          subject
+        }))
+    );
+  }
+
+  // =========================================================
+  // 32. EVALUATION STATUS
+  // =========================================================
+
+  function getJaceEvaluationStatus() {
+    const summary = getJaceEvaluationSummary();
+
+    return {
+      enabled: JACE_EVALUATION.enabled,
+
+      targetScore:
+        JACE_EVALUATION.minimumAcceptableScore,
+
+      totalBenchmarkQuestions:
+        getAllJaceBenchmarkQuestions().length,
+
+      totalEvaluationRecords:
+        summary.totalEvaluations,
+
+      averageScore:
+        summary.averageScore,
+
+      meetsTarget:
+        summary.averageScore !== null &&
+        summary.averageScore >=
+          JACE_EVALUATION.minimumAcceptableScore
+    };
+  }
+
+  // =========================================================
+  // 33. EXPORT EVALUATION DATA
+  // =========================================================
+
+  function exportJaceEvaluationData() {
+    const data = {
+      project: "J.A.C.E. 001",
+
+      evaluationDate: new Date().toISOString(),
+
+      performance: getJacePerformanceReport(),
+
+      evaluationSummary: getJaceEvaluationSummary(),
+
+      evaluationRecords: jaceEvaluationRecords,
+
+      benchmarks: JACE_BENCHMARKS
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      {
+        type: "application/json"
+      }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "JACE-001-Evaluation-Report.json";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(url);
+  }
+    // =========================================================
+  // 34. OLLAMA CONNECTION
+  // =========================================================
+
+  async function checkOllamaConnection() {
+    try {
+      const response = await fetch(
+        "http://localhost:11434/api/tags",
+        {
+          method: "GET"
+        }
+      );
+
+      if (!response.ok) {
+        return {
+          connected: false,
+          message: "Ollama is not responding correctly."
+        };
+      }
+
+      const data = await response.json();
+
+      const models = (data.models || []).map(
+        model => model.name
+      );
+
+      const modelAvailable = models.some(
+        model =>
+          model === OLLAMA_MODEL ||
+          model.startsWith(OLLAMA_MODEL + ":")
+      );
+
+      return {
+        connected: true,
+        modelAvailable,
+        models,
+        message: modelAvailable
+          ? "Ollama and the configured model are available."
+          : "Ollama is running, but the configured model was not found."
+      };
+
+    } catch (error) {
+      console.error("[J.A.C.E. OLLAMA]", error);
+
+      return {
+        connected: false,
+        modelAvailable: false,
+        models: [],
+        message:
+          "Unable to connect to Ollama. Make sure Ollama is running."
+      };
+    }
+  }
+
+  // =========================================================
+  // 35. PREPARE CONVERSATION HISTORY
+  // =========================================================
+
+  function prepareJaceHistory(history = []) {
+    if (!Array.isArray(history)) {
+      return [];
+    }
+
+    return history
+      .filter(message =>
+        message &&
+        ["user", "assistant"].includes(message.role) &&
+        typeof message.content === "string"
+      )
+      .map(message => ({
+        role: message.role,
+        content: message.content
+      }));
+  }
+
+  // =========================================================
+  // 36. BUILD OLLAMA REQUEST
+  // =========================================================
+
+  function buildJaceOllamaPayload({
+    question,
+    domain = "general",
+    history = [],
+    imageContext = ""
+  }) {
+    const systemPrompt = buildSystemPrompt(domain);
+
+    const userContent = imageContext
+      ? `${question}\n\n${imageContext}`
+      : question;
+
+    const messages = [
+      {
+        role: "system",
+        content: systemPrompt
+      },
+
+      ...prepareJaceHistory(history),
+
+      {
+        role: "user",
+        content: userContent
+      }
+    ];
+
+    return {
+      model: OLLAMA_MODEL,
+
+      messages,
+
+      stream: true,
+
+      keep_alive: KEEP_ALIVE,
+
+      options: AI_OPTIONS
+    };
+  }
+
+  // =========================================================
+  // 37. STREAM ACADEMIC RESPONSE
+  // =========================================================
+
+  async function generateJaceResponse({
+    question,
+    domain = "general",
+    history = [],
+    imageContext = "",
+    onToken = null,
+    onComplete = null,
+    onError = null
+  }) {
+    if (!question || !question.trim()) {
+      throw new Error("Please enter an academic question.");
+    }
+
+    if (isAiProcessing) {
+      throw new Error(
+        "J.A.C.E. is already processing a request."
+      );
+    }
+
+    const detectedDomain =
+      domain || detectSubject(question) || "general";
+
+    const payload = buildJaceOllamaPayload({
+      question,
+      domain: detectedDomain,
+      history,
+      imageContext
+    });
+
+    currentAiController = new AbortController();
+
+    const signal = currentAiController.signal;
+
+    let completeAnswer = "";
+    let finalMetrics = {};
+    let streamBuffer = "";
+
+    isAiProcessing = true;
+
+    startJacePerformanceTracking();
 
     try {
-      let imageContext = "";
-
-      // IMAGE ANALYSIS
-      if (imageFile) {
-        imageContext = await analyseUploadedImage(
-          imageFile,
-          query
-        );
-
-        if (signal.aborted) return;
-      }
-
-      const completeUserQuery = imageContext
-        ? `${query || "Please analyse this image."}
-
-${imageContext}`
-        : query;
-
-      // In General Chat, detect the subject and use
-      // its specialised instructions automatically.
-      const processingDomain =
-        domain || detectSubject(completeUserQuery);
-
-      const worldTime =
-        getRequestedWorldTime(completeUserQuery);
-
-      const extraContext = worldTime
-        ? `\nLIVE WORLD CLOCK INFORMATION:\n${worldTime}\nUse this information for the user's time question.`
-        : "";
-
-      const systemPrompt = buildSystemPrompt(
-        processingDomain,
-        extraContext
-      );
-
-      userMessage.content = completeUserQuery;
-
-      const messages = [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        ...activeHistory.slice(-8)
-      ];
-
-      if (subtitleOutput) {
-        subtitleOutput.textContent =
-          "Selené is thinking...";
-      }
-
-      // TEMPORARY PERFORMANCE DIAGNOSTICS: request size and header timing.
-      const diagnosticPayload = {
-        model: OLLAMA_MODEL,
-        messages,
-        stream: true,
-        keep_alive: KEEP_ALIVE,
-        options: AI_OPTIONS
-      };
-      console.log(
-        `[J.A.C.E. DIAGNOSTICS] Request payload size: ${JSON.stringify(diagnosticPayload).length} characters`
-      );
-      const fetchStartedAt = performance.now();
-
       const response = await fetch(OLLAMA_URL, {
         method: "POST",
 
@@ -1744,343 +2072,868 @@ ${imageContext}`
           "Content-Type": "application/json"
         },
 
-        signal,
+        body: JSON.stringify(payload),
 
-        body: JSON.stringify({
-          model: OLLAMA_MODEL,
-          messages,
-          stream: true,
-          keep_alive: KEEP_ALIVE,
-          options: AI_OPTIONS
-        })
+        signal
       });
-
-      console.log(
-        `[J.A.C.E. DIAGNOSTICS] Time until response headers: ${((performance.now() - fetchStartedAt) / 1000).toFixed(3)} seconds`
-      );
 
       if (!response.ok) {
         const errorText = await response.text();
 
         throw new Error(
-          `Ollama HTTP ${response.status}: ${errorText}`
+          `Ollama request failed (${response.status}): ${errorText}`
         );
       }
 
-      assistantResponse = await readStreamingResponse(
-        response,
-        (newText, completeText) => {
-          if (subtitleOutput) {
-            subtitleOutput.textContent = completeText;
-          }
-        },
-        signal
-      );
+      if (!response.body) {
+        throw new Error(
+          "Streaming is not supported by this response."
+        );
+      }
 
-      if (signal.aborted) {
-        if (assistantResponse) {
-          activeHistory.push({
-            role: "assistant",
-            content: assistantResponse
-          });
+      const reader = response.body.getReader();
 
-          if (subtitleOutput) {
-            subtitleOutput.textContent =
-              assistantResponse + "\n\n[Generation stopped]";
-          }
-        } else if (subtitleOutput) {
-          subtitleOutput.textContent = "Response stopped.";
+      const decoder = new TextDecoder();
+
+      let streamFinished = false;
+
+      while (!streamFinished) {
+        const { value, done } = await reader.read();
+
+        if (done) {
+          streamFinished = true;
+          break;
         }
 
-        return;
-      }
-
-      activeHistory.push({
-        role: "assistant",
-        content: assistantResponse
-      });
-
-      if (activeHistory.length > 24) {
-        activeHistory.splice(
-          0,
-          activeHistory.length - 24
+        streamBuffer += decoder.decode(
+          value,
+          {
+            stream: true
+          }
         );
+
+        const lines = streamBuffer.split("\n");
+
+        streamBuffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          let chunk;
+
+          try {
+            chunk = JSON.parse(line);
+          } catch (error) {
+            console.warn(
+              "[J.A.C.E.] Ignoring an invalid stream chunk.",
+              error
+            );
+
+            continue;
+          }
+
+          const token = chunk.message?.content || "";
+
+          if (token) {
+            recordJaceFirstToken();
+
+            completeAnswer += token;
+
+            if (typeof onToken === "function") {
+              onToken(token, completeAnswer);
+            }
+          }
+
+          if (chunk.done) {
+            finalMetrics = chunk;
+          }
+        }
       }
 
-      if (subtitleOutput) {
-        subtitleOutput.textContent = assistantResponse;
+      // Process any remaining stream data.
+      if (streamBuffer.trim()) {
+        try {
+          const finalChunk = JSON.parse(
+            streamBuffer.trim()
+          );
+
+          const token =
+            finalChunk.message?.content || "";
+
+          if (token) {
+            recordJaceFirstToken();
+
+            completeAnswer += token;
+
+            if (typeof onToken === "function") {
+              onToken(token, completeAnswer);
+            }
+          }
+
+          if (finalChunk.done) {
+            finalMetrics = finalChunk;
+          }
+
+        } catch (error) {
+          console.warn(
+            "[J.A.C.E.] Final stream chunk could not be parsed.",
+            error
+          );
+        }
       }
+
+      const performanceReport =
+        finishJacePerformanceTracking(finalMetrics);
+
+      const result = {
+        success: true,
+
+        answer: completeAnswer,
+
+        subject: detectedDomain,
+
+        performance: performanceReport,
+
+        ollamaMetrics: {
+          totalDuration: finalMetrics.total_duration || 0,
+
+          loadDuration: finalMetrics.load_duration || 0,
+
+          promptEvaluationDuration:
+            finalMetrics.prompt_eval_duration || 0,
+
+          generationDuration:
+            finalMetrics.eval_duration || 0,
+
+          promptTokens:
+            finalMetrics.prompt_eval_count || 0,
+
+          generatedTokens:
+            finalMetrics.eval_count || 0
+        }
+      };
+
+      if (typeof onComplete === "function") {
+        onComplete(result);
+      }
+
+      return result;
 
     } catch (error) {
-      if (error.name === "AbortError" || signal.aborted) {
-        if (assistantResponse) {
-          activeHistory.push({
-            role: "assistant",
-            content: assistantResponse
-          });
-
-          if (subtitleOutput) {
-            subtitleOutput.textContent =
-              assistantResponse + "\n\n[Generation stopped]";
-          }
-        } else if (subtitleOutput) {
-          subtitleOutput.textContent = "Response stopped.";
-        }
-
-        return;
+      if (error.name === "AbortError") {
+        return {
+          success: false,
+          aborted: true,
+          answer: completeAnswer,
+          message: "Generation stopped."
+        };
       }
 
+      recordJaceFailedRequest();
+
       console.error(
-        "Selené AI communication failure:",
+        "[J.A.C.E. GENERATION ERROR]",
         error
       );
 
-      const messageIndex =
-        activeHistory.indexOf(userMessage);
-
-      if (messageIndex !== -1) {
-        activeHistory.splice(messageIndex, 1);
+      if (typeof onError === "function") {
+        onError(error);
       }
 
-      let friendlyError =
-        "I couldn't process that request. Please try again.";
-
-      if (
-        error instanceof TypeError ||
-        /failed to fetch|networkerror/i.test(error.message)
-      ) {
-        friendlyError =
-          "I cannot reach Ollama. Please make sure Ollama is running and your local connection is available.";
-      }
-
-      else if (/empty response/i.test(error.message)) {
-        friendlyError =
-          "Ollama returned an empty response. Please try again.";
-      }
-
-      else if (/HTTP 404/i.test(error.message)) {
-        friendlyError =
-          "The selected AI model could not be found. Check that qwen2.5:1.5b is installed in Ollama.";
-      }
-
-      else if (/HTTP 500/i.test(error.message)) {
-        friendlyError =
-          "Ollama encountered an internal error. Please check the Ollama server.";
-      }
-
-      else if (/HTTP 403|HTTP 401/i.test(error.message)) {
-        friendlyError =
-          "The local AI connection was rejected. Please check Ollama's access settings.";
-      }
-
-      if (subtitleOutput) {
-        subtitleOutput.textContent =
-          `${friendlyError}\n\nDetails: ${error.message}`;
-      }
+      throw error;
 
     } finally {
       isAiProcessing = false;
-
-      if (currentAiController === requestController) {
-        currentAiController = null;
-      }
-
-      if (mainExecuteBtn) {
-        mainExecuteBtn.disabled = false;
-      }
-
-      if (activeWorkspaceButton) {
-        activeWorkspaceButton.disabled = false;
-      }
-
-      if (mainTextarea) {
-        mainTextarea.disabled = false;
-      }
-
-      if (activeWorkspaceInput) {
-        activeWorkspaceInput.disabled = false;
-      }
-
-      setStopButtonsVisible(false);
-
-      avatar?.classList.remove("speaking");
-
-      if (domain) {
-        activeWorkspaceFile = null;
-
-        const input = document.querySelector(
-          "#activeDomainContainer input[type='file']"
-        );
-
-        if (input) input.value = "";
-
-        const filename = document.querySelector(
-          "#activeDomainContainer .selene-upload-filename"
-        );
-
-        if (filename) {
-          filename.textContent = "No image selected";
-        }
-      } else {
-        mainFile = null;
-
-        const input = document.querySelector(
-          ".input-console-container input[type='file']"
-        );
-
-        if (input) input.value = "";
-
-        const filename = document.querySelector(
-          ".input-console-container .selene-upload-filename"
-        );
-
-        if (filename) {
-          filename.textContent = "No image selected";
-        }
-      }
+      currentAiController = null;
     }
   }
 
   // =========================================================
-  // 20. THREE.JS AVATAR
+  // 38. STOP RESPONSE GENERATION
   // =========================================================
 
-  const container =
-    document.getElementById("avatarViewport");
+  function stopJaceGeneration() {
+    if (
+      currentAiController &&
+      isAiProcessing
+    ) {
+      currentAiController.abort();
+      return true;
+    }
 
-  const fallback =
-    document.getElementById("avatarFallback");
+    return false;
+  }
 
-  if (container && window.THREE && THREE.GLTFLoader) {
+  // =========================================================
+  // 39. RESPONSE GENERATION STATUS
+  // =========================================================
+
+  function isJaceGenerating() {
+    return isAiProcessing;
+  }
+
+  // =========================================================
+  // 40. PERFORMANCE CONSOLE DIAGNOSTICS
+  // =========================================================
+
+  function logJacePerformance() {
+    const report = getJacePerformanceReport();
+
+    console.group(
+      "J.A.C.E. 001 — Performance Diagnostics"
+    );
+
+    console.table(report);
+
+    console.groupEnd();
+
+    return report;
+  }
+
+  // =========================================================
+  // 41. CONNECTION DIAGNOSTICS
+  // =========================================================
+
+  async function runJaceDiagnostics() {
+    const connection = await checkOllamaConnection();
+
+    const diagnostics = {
+      project: "J.A.C.E. 001",
+
+      endpoint: OLLAMA_URL,
+
+      configuredModel: OLLAMA_MODEL,
+
+      connection: connection.connected,
+
+      modelAvailable: connection.modelAvailable,
+
+      availableModels: connection.models,
+
+      evaluation: getJaceEvaluationStatus(),
+
+      performance: getJacePerformanceReport()
+    };
+
+    console.group(
+      "J.A.C.E. 001 — System Diagnostics"
+    );
+
+    console.table({
+      endpoint: diagnostics.endpoint,
+
+      model: diagnostics.configuredModel,
+
+      connection: diagnostics.connection,
+
+      modelAvailable: diagnostics.modelAvailable
+    });
+
+    console.log(diagnostics);
+
+    console.groupEnd();
+
+    return diagnostics;
+  }
+    // =========================================================
+  // 42. CHAT INTERFACE ELEMENTS
+  // =========================================================
+
+  const jaceMainInput = document.querySelector(
+    ".input-console-container textarea"
+  );
+
+  const jaceMainButton = document.querySelector(
+    ".input-console-container .execute-btn"
+  );
+
+  const jaceMainOutput = document.getElementById(
+    "subtitleOutput"
+  );
+
+  const jaceMainUpload = document.querySelector(
+    ".input-console-container input[type='file']"
+  );
+
+  // =========================================================
+  // 43. OUTPUT DISPLAY
+  // =========================================================
+
+  function displayJaceOutput(text) {
+    const output =
+      document.getElementById("subtitleOutput") ||
+      document.querySelector(".subtitle-output");
+
+    if (!output) {
+      console.log("[J.A.C.E. OUTPUT]", text);
+      return;
+    }
+
+    output.textContent = text;
+  }
+
+  function appendJaceOutput(text) {
+    const output =
+      document.getElementById("subtitleOutput") ||
+      document.querySelector(".subtitle-output");
+
+    if (!output) return;
+
+    output.textContent += text;
+  }
+
+  // =========================================================
+  // 44. CHAT HISTORY MANAGEMENT
+  // =========================================================
+
+  function getJaceActiveHistory(domain) {
+    const historyKey = domain || "general";
+
+    if (!conversationHistories[historyKey]) {
+      conversationHistories[historyKey] = [];
+    }
+
+    return conversationHistories[historyKey];
+  }
+
+  function addJaceHistoryMessage(domain, role, content) {
+    const history = getJaceActiveHistory(domain);
+
+    history.push({
+      role,
+      content
+    });
+
+    // Keep recent context within reasonable limits.
+    if (history.length > 24) {
+      history.splice(
+        0,
+        history.length - 24
+      );
+    }
+  }
+
+  function clearJaceConversation(domain) {
+    const historyKey = domain || "general";
+
+    conversationHistories[historyKey] = [];
+  }
+
+  // =========================================================
+  // 45. ACADEMIC IMAGE PURPOSE DETECTION
+  // =========================================================
+
+  function detectUploadedMaterialPurpose(query) {
+    const text = String(query || "").toLowerCase();
+
+    if (
+      /\b(check|evaluate|correct|mark|review|grade)\b/.test(text) &&
+      /\b(answer|solution|working|response|attempt)\b/.test(text)
+    ) {
+      return "answer";
+    }
+
+    if (
+      /\b(worksheet|exercise|question paper|test paper)\b/.test(text)
+    ) {
+      return "worksheet";
+    }
+
+    if (
+      /\b(notes|explain these notes|summarise these notes)\b/.test(text)
+    ) {
+      return "notes";
+    }
+
+    if (
+      /\b(explain this diagram|analyse this diagram)\b/.test(text)
+    ) {
+      return "diagram";
+    }
+
+    return "question";
+  }
+
+  // =========================================================
+  // 46. GENERATE ACADEMIC RESPONSE
+  // =========================================================
+
+  async function handleAiQuery(
+    query,
+    domain = null,
+    imageFile = null
+  ) {
+    const userQuestion = String(query || "").trim();
+
+    if (
+      (!userQuestion && !imageFile) ||
+      isAiProcessing
+    ) {
+      return;
+    }
+
+    let imageContext = "";
+
+    const activeDomain =
+      domain || detectSubject(userQuestion) || "general";
+
     try {
-      const scene = new THREE.Scene();
+      // -----------------------------------------------
+      // IMAGE PROCESSING
+      // -----------------------------------------------
 
-      const camera = new THREE.PerspectiveCamera(
-        45,
-        1,
-        0.1,
-        1000
-      );
+      if (imageFile) {
+        displayJaceOutput(
+          "Analysing the uploaded academic material..."
+        );
 
-      camera.position.set(0, 1.4, 2.5);
+        const purpose =
+          detectUploadedMaterialPurpose(userQuestion);
 
-      const renderer = new THREE.WebGLRenderer({
-        alpha: true,
-        antialias: true
-      });
+        const imageResult = await processAcademicImage(
+          imageFile,
+          purpose
+        );
 
-      renderer.setPixelRatio(
-        Math.min(window.devicePixelRatio || 1, 2)
-      );
-
-      container.appendChild(renderer.domElement);
-
-      if (fallback) {
-        fallback.hidden = true;
-      }
-
-      scene.add(
-        new THREE.AmbientLight(0xffffff, 0.8)
-      );
-
-      const keyLight = new THREE.PointLight(
-        0xb78be9,
-        2,
-        10
-      );
-
-      keyLight.position.set(2, 3, 2);
-      scene.add(keyLight);
-
-      const rimLight = new THREE.PointLight(
-        0x7000ff,
-        1.5,
-        10
-      );
-
-      rimLight.position.set(-2, 1, -1);
-      scene.add(rimLight);
-
-      let avatarModel = null;
-
-      const resizeAvatar = () => {
-        const w = Math.max(container.clientWidth, 1);
-        const h = Math.max(container.clientHeight, 1);
-
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(w, h, false);
-      };
-
-      resizeAvatar();
-
-      window.addEventListener("resize", resizeAvatar);
-
-      const loader = new THREE.GLTFLoader();
-
-      loader.load(
-        "assets/models/selene.glb",
-
-        (gltf) => {
-          avatarModel = gltf.scene;
-
-          avatarModel.position.set(0, -0.2, 0);
-          avatarModel.scale.set(1, 1, 1);
-
-          scene.add(avatarModel);
-        },
-
-        undefined,
-
-        (error) => {
-          console.warn(
-            "Could not load assets/models/selene.glb.",
-            error
+        if (!imageResult.success) {
+          displayJaceOutput(
+            imageResult.message ||
+            "The uploaded image could not be processed."
           );
 
-          if (fallback) {
-            fallback.hidden = false;
-            fallback.textContent = "AVATAR MODEL NOT FOUND";
-          }
-        }
-      );
-
-      const clock = new THREE.Clock();
-
-      function animateAvatar() {
-        requestAnimationFrame(animateAvatar);
-
-        if (avatarModel) {
-          const elapsedTime = clock.getElapsedTime();
-
-          avatarModel.position.y =
-            -0.2 + Math.sin(elapsedTime * 1.5) * 0.03;
-
-          avatarModel.rotation.y =
-            Math.sin(elapsedTime * 0.5) * 0.05;
+          return;
         }
 
-        renderer.render(scene, camera);
+        imageContext = imageResult.context;
       }
 
-      animateAvatar();
+      // -----------------------------------------------
+      // CLASSIFY THE USER'S REQUEST
+      // -----------------------------------------------
+
+      const requestType =
+        classifyAcademicInput(userQuestion);
+
+      let finalQuestion = userQuestion;
+
+      if (requestType === "diagram") {
+        finalQuestion +=
+          "\n\n" +
+          buildAcademicDiagramPrompt(userQuestion);
+      }
+
+      if (
+        imageFile &&
+        detectUploadedMaterialPurpose(userQuestion) === "answer"
+      ) {
+        imageContext =
+          buildAnswerEvaluationPrompt(
+            extractedImageText
+          );
+      }
+
+      // -----------------------------------------------
+      // PREPARE CONVERSATION
+      // -----------------------------------------------
+
+      const history =
+        getJaceActiveHistory(activeDomain);
+
+      const historyForRequest =
+        history.slice(-8);
+
+      const questionForModel =
+        finalQuestion ||
+        "Please analyse the uploaded academic material.";
+
+      addJaceHistoryMessage(
+        activeDomain,
+        "user",
+        questionForModel +
+          (imageContext ? "\n\n[Academic image attached]" : "")
+      );
+
+      // -----------------------------------------------
+      // GENERATE RESPONSE
+      // -----------------------------------------------
+
+      displayJaceOutput("J.A.C.E. is processing...");
+
+      let streamedAnswer = "";
+
+      const result = await generateJaceResponse({
+        question: questionForModel,
+
+        domain: activeDomain,
+
+        history: historyForRequest,
+
+        imageContext,
+
+        onToken: (token) => {
+          streamedAnswer += token;
+
+          displayJaceOutput(streamedAnswer);
+        },
+
+        onComplete: (response) => {
+          console.log(
+            "[J.A.C.E. COMPLETED]",
+            response.performance
+          );
+        },
+
+        onError: (error) => {
+          console.error(
+            "[J.A.C.E. RESPONSE ERROR]",
+            error
+          );
+        }
+      });
+
+      // -----------------------------------------------
+      // SAVE RESPONSE
+      // -----------------------------------------------
+
+      if (result.success) {
+        addJaceHistoryMessage(
+          activeDomain,
+          "assistant",
+          result.answer
+        );
+
+        displayJaceOutput(result.answer);
+
+        console.log(
+          formatJacePerformanceReport(
+            result.performance
+          )
+        );
+      }
+
+      if (result.aborted) {
+        displayJaceOutput(
+          (result.answer || streamedAnswer) +
+          "\n\n[Generation stopped]"
+        );
+      }
 
     } catch (error) {
-      console.warn(
-        "3D avatar initialization failed.",
+      console.error(
+        "[J.A.C.E. CHAT]",
+        error
+      );
+
+      displayJaceOutput(
+        "Unable to complete the request.\n\n" +
+        error.message
+      );
+
+    } finally {
+      clearAcademicImageState();
+    }
+  }
+
+  // =========================================================
+  // 47. MAIN CHAT SEND BUTTON
+  // =========================================================
+
+  if (jaceMainButton && jaceMainInput) {
+    jaceMainButton.addEventListener(
+      "click",
+      () => {
+        handleAiQuery(
+          jaceMainInput.value,
+          null,
+          selectedAcademicImage
+        );
+      }
+    );
+
+    jaceMainInput.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey
+        ) {
+          event.preventDefault();
+
+          handleAiQuery(
+            jaceMainInput.value,
+            null,
+            selectedAcademicImage
+          );
+        }
+      }
+    );
+  }
+
+  // =========================================================
+  // 48. IMAGE UPLOAD CONTROL
+  // =========================================================
+
+  function connectJaceImageUpload(input) {
+    if (!input) return;
+
+    input.addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+
+      if (!file) return;
+
+      if (
+        !requestAcademicImageConfirmation(file)
+      ) {
+        input.value = "";
+        return;
+      }
+
+      const filename =
+        input.parentElement?.querySelector(
+          ".selene-upload-filename"
+        );
+
+      if (filename) {
+        filename.textContent =
+          "Academic image selected: " + file.name;
+      }
+
+      selectedAcademicImage = file;
+    });
+  }
+
+  connectJaceImageUpload(jaceMainUpload);
+
+  // =========================================================
+  // 49. STOP BUTTON CONNECTION
+  // =========================================================
+
+  function connectJaceStopButton(button) {
+    if (!button) return;
+
+    button.addEventListener(
+      "click",
+      () => {
+        stopJaceGeneration();
+      }
+    );
+  }
+
+  document
+    .querySelectorAll(
+      ".stop-generation-btn, .stop-btn"
+    )
+    .forEach(connectJaceStopButton);
+
+  // =========================================================
+  // 50. MODULE WORKSPACE CONNECTION
+  // =========================================================
+
+  function connectJaceWorkspace(
+    input,
+    button,
+    domain,
+    fileInput = null
+  ) {
+    if (!input || !button) return;
+
+    const submit = () => {
+      handleAiQuery(
+        input.value,
+        domain,
+        fileInput?.files?.[0] || null
+      );
+    };
+
+    button.addEventListener(
+      "click",
+      submit
+    );
+
+    input.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey
+        ) {
+          event.preventDefault();
+          submit();
+        }
+      }
+    );
+  }
+
+  // =========================================================
+  // 51. DIAGNOSTIC ACCESS
+  // =========================================================
+
+  window.JACE001 = {
+    checkConnection: checkOllamaConnection,
+
+    diagnostics: runJaceDiagnostics,
+
+    performance: getJacePerformanceReport,
+
+    evaluation: getJaceEvaluationSummary,
+
+    evaluationStatus: getJaceEvaluationStatus,
+
+    benchmarks: getAllJaceBenchmarkQuestions,
+
+    exportEvaluation: exportJaceEvaluationData,
+
+    stop: stopJaceGeneration,
+
+    clearHistory: clearJaceConversation
+  };
+    // =========================================================
+  // 52. MODULE WORKSPACE INTEGRATION
+  // =========================================================
+
+  function initialiseJaceWorkspaces() {
+    const workspaceConfigs = [
+      {
+        domain: "mathematics",
+        input: document.getElementById("mathInput"),
+        button: document.getElementById("mathSend"),
+        file: document.getElementById("mathFile")
+      },
+      {
+        domain: "quantum",
+        input: document.getElementById("quantumInput"),
+        button: document.getElementById("quantumSend"),
+        file: document.getElementById("quantumFile")
+      },
+      {
+        domain: "physics",
+        input: document.getElementById("physicsInput"),
+        button: document.getElementById("physicsSend"),
+        file: document.getElementById("physicsFile")
+      },
+      {
+        domain: "chemistry",
+        input: document.getElementById("chemistryInput"),
+        button: document.getElementById("chemistrySend"),
+        file: document.getElementById("chemistryFile")
+      },
+      {
+        domain: "biology",
+        input: document.getElementById("biologyInput"),
+        button: document.getElementById("biologySend"),
+        file: document.getElementById("biologyFile")
+      },
+      {
+        domain: "history",
+        input: document.getElementById("historyInput"),
+        button: document.getElementById("historySend"),
+        file: document.getElementById("historyFile")
+      },
+      {
+        domain: "psychology",
+        input: document.getElementById("psychologyInput"),
+        button: document.getElementById("psychologySend"),
+        file: document.getElementById("psychologyFile")
+      },
+      {
+        domain: "translation",
+        input: document.getElementById("translationInput"),
+        button: document.getElementById("translationSend"),
+        file: document.getElementById("translationFile")
+      }
+    ];
+
+    workspaceConfigs.forEach(config => {
+      if (config.input && config.button) {
+        connectJaceWorkspace(
+          config.input,
+          config.button,
+          config.domain,
+          config.file
+        );
+      }
+    });
+  }
+
+  // =========================================================
+  // 53. SYSTEM STARTUP CHECK
+  // =========================================================
+
+  async function initialiseJaceSystem() {
+    console.info(
+      "J.A.C.E. 001 — Initialising academic system..."
+    );
+
+    initialiseJaceWorkspaces();
+
+    try {
+      const connection = await checkOllamaConnection();
+
+      if (!connection.connected) {
+        console.warn(
+          "[J.A.C.E.] Ollama connection unavailable:",
+          connection.message
+        );
+
+        return;
+      }
+
+      if (!connection.modelAvailable) {
+        console.warn(
+          "[J.A.C.E.] Configured model is unavailable:",
+          OLLAMA_MODEL
+        );
+
+        return;
+      }
+
+      console.info(
+        "[J.A.C.E.] Academic system ready."
+      );
+
+      console.info(
+        "[J.A.C.E.] Model:",
+        OLLAMA_MODEL
+      );
+
+    } catch (error) {
+      console.error(
+        "[J.A.C.E. INITIALISATION]",
         error
       );
     }
   }
 
   // =========================================================
-  // 21. INITIAL GREETING
+  // 54. GLOBAL ERROR HANDLING
   // =========================================================
 
-  if (subtitleOutput && !subtitleOutput.textContent.trim()) {
-    subtitleOutput.textContent =
-      '"Hello. I am Selené Vesperiine. Project J.A.C.E. 001 is online. What can I help you with today?"';
-  }
+  window.addEventListener(
+    "unhandledrejection",
+    event => {
+      console.error(
+        "[J.A.C.E. UNHANDLED PROMISE]",
+        event.reason
+      );
+    }
+  );
+
+  window.addEventListener(
+    "error",
+    event => {
+      console.error(
+        "[J.A.C.E. SYSTEM ERROR]",
+        event.message,
+        event.filename,
+        event.lineno
+      );
+    }
+  );
+
+  // =========================================================
+  // 55. INITIALISE J.A.C.E. 001
+  // =========================================================
+
+  initialiseJaceSystem();
 
 });
