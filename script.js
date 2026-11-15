@@ -662,6 +662,12 @@ RULES:
 - For proofs, establish each logical inference.
 - For graphs, use an appropriate graph representation
   when requested.
+  Assume the user is capable of understanding standard academic terminology.
+Avoid explaining elementary operations unless explicitly requested.
+Give direct answers to straightforward questions.
+Show rigorous derivations for genuinely complex problems.
+Never use childish phrases such as "First, start with the first number."
+Adapt explanation depth to the actual problem.
 `,
 
     quantum: `
