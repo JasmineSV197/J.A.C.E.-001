@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
@@ -757,7 +756,7 @@ RULES:
   };
 
   // =========================================================
-  // 9. PERMANENT SELENÉ IDENTITY
+  // 9. PERMANENT SELÉNÉ IDENTITY
   // =========================================================
 
   function buildSystemPrompt(domain, extraContext = "") {
@@ -1485,6 +1484,10 @@ If a character is uncertain, ask the user to clarify it.
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
+    // TEMPORARY PERFORMANCE DIAGNOSTICS: stream timing only.
+    const streamStartedAt = performance.now();
+    let firstTokenLogged = false;
+
     let buffer = "";
     let completeText = "";
     let finished = false;
@@ -1509,11 +1512,31 @@ If a character is uncertain, ask the user to clarify it.
       const content = data.message?.content || "";
 
       if (content) {
+        if (!firstTokenLogged) {
+          firstTokenLogged = true;
+          console.log(
+            `[J.A.C.E. DIAGNOSTICS] First token after stream start: ${((performance.now() - streamStartedAt) / 1000).toFixed(3)} seconds`
+          );
+        }
+
         completeText += content;
         onText(content, completeText);
       }
 
-      if (data.done) finished = true;
+      if (data.done) {
+        const seconds = value =>
+          typeof value === "number" ? (value / 1e9).toFixed(3) : "unavailable";
+
+        console.log("[J.A.C.E. DIAGNOSTICS] Ollama metrics:", {
+          load_seconds: seconds(data.load_duration),
+          prompt_processing_seconds: seconds(data.prompt_eval_duration),
+          generation_seconds: seconds(data.eval_duration),
+          prompt_tokens: data.prompt_eval_count ?? "unavailable",
+          generated_tokens: data.eval_count ?? "unavailable"
+        });
+
+        finished = true;
+      }
     }
 
     try {
@@ -1701,6 +1724,19 @@ ${imageContext}`
           "Selené is thinking...";
       }
 
+      // TEMPORARY PERFORMANCE DIAGNOSTICS: request size and header timing.
+      const diagnosticPayload = {
+        model: OLLAMA_MODEL,
+        messages,
+        stream: true,
+        keep_alive: KEEP_ALIVE,
+        options: AI_OPTIONS
+      };
+      console.log(
+        `[J.A.C.E. DIAGNOSTICS] Request payload size: ${JSON.stringify(diagnosticPayload).length} characters`
+      );
+      const fetchStartedAt = performance.now();
+
       const response = await fetch(OLLAMA_URL, {
         method: "POST",
 
@@ -1718,6 +1754,10 @@ ${imageContext}`
           options: AI_OPTIONS
         })
       });
+
+      console.log(
+        `[J.A.C.E. DIAGNOSTICS] Time until response headers: ${((performance.now() - fetchStartedAt) / 1000).toFixed(3)} seconds`
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
