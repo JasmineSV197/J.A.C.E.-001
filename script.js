@@ -3297,14 +3297,9 @@ IMPORTANT:
 
         imageContext,
 
-        onToken: (token) => {
-          streamedAnswer += token;
-
-          displayJaceOutput(
-            streamedAnswer,
-            { render: false }
-          );
-        },
+       onToken: (token) => {
+  streamedAnswer += token;
+},
 
         onComplete: (response) => {
           console.log(
