@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +16,8 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
   <script src="https://3dmol.org/build/3Dmol-min.js"></script>
 
   <script src="script.js" defer></script>
@@ -140,9 +143,9 @@
 
         <div class="avatar-viewport" id="avatarViewport">
           <div class="avatar-wrapper">
-  <div id="selene3D"></div>
-  <div id="avatarLoading">Loading Selené...</div>
-</div>
+            <div id="selene3D"></div>
+            <div id="avatarLoading">Loading Selené...</div>
+          </div>
         </div>
       </section>
 
@@ -153,22 +156,45 @@
         </h1>
 
         <div class="subtitle-bar" aria-live="polite">
-          <span class="subtitle-text" id="subtitleOutput">
+          <div class="subtitle-text" id="subtitleOutput">
             "Hello. I am Selené. Select a specialized module or enter a prompt below."
-          </span>
+          </div>
         </div>
       </section>
 
       <!-- INPUT CONSOLE -->
       <section class="input-console-container">
+
         <div class="input-console">
-          <textarea placeholder="Type your prompt for Selené..." rows="2" aria-label="Prompt input"></textarea>
+          <textarea
+            placeholder="Type your prompt for Selené..."
+            rows="2"
+            aria-label="Prompt input"
+          ></textarea>
+
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/bmp"
+            aria-label="Upload an academic image"
+          >
         </div>
-        <button type="button" class="execute-btn">Execute</button>
+
+        <button type="button" class="execute-btn">
+          Execute
+        </button>
+
+        <button
+          type="button"
+          class="stop-generation-btn"
+        >
+          Stop Response
+        </button>
+
       </section>
 
       <!-- SPECIALIZED MODULES -->
       <section class="module-grid" aria-label="Specialized modules">
+
         <button class="module-card" type="button" data-domain="mathematics">
           <span class="module-icon">∑</span>
           <span class="module-name">Mathematics</span>
@@ -208,6 +234,7 @@
           <span class="module-icon">🌐</span>
           <span class="module-name">Translation</span>
         </button>
+
       </section>
 
       <!-- SELECTED MODULE WORKSPACE -->
