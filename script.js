@@ -3685,6 +3685,9 @@ IMPORTANT:
   // =========================================================
 
   window.JACE001 = {
+    learningMemory: () => {
+  return getJaceLearningMemory();
+},
     checkConnection: checkOllamaConnection,
 
     diagnostics: runJaceDiagnostics,
