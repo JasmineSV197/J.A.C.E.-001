@@ -1268,6 +1268,8 @@ ${selectedInstructions}
 
 ${moduleBoundary}
 
+${buildJaceLearningContext(domain)}
+
 UNIVERSAL RESPONSE STANDARD:
 
 - Every distinct step must appear on its own line.
