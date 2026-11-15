@@ -1283,6 +1283,82 @@ UNIVERSAL RESPONSE STANDARD:
 `;
   }
 
+  // =========================================================
+  // 8A. PERSISTENT LEARNING MEMORY
+  // =========================================================
+
+  const JACE_MEMORY_KEY = "JACE001_VERIFIED_LEARNING_V1";
+  const MAX_LEARNING_MEMORIES = 40;
+
+  function getJaceLearningMemory() {
+    try {
+      const saved = localStorage.getItem(JACE_MEMORY_KEY);
+      const parsed = saved ? JSON.parse(saved) : [];
+
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn("[J.A.C.E. MEMORY]", error);
+      return [];
+    }
+  }
+
+  function saveJaceLearningMemory(domain, lesson) {
+    const cleanLesson = String(lesson || "").trim();
+
+    if (!cleanLesson || cleanLesson.length > 500) {
+      return false;
+    }
+
+    try {
+      const memories = getJaceLearningMemory();
+
+      const duplicate = memories.some(item =>
+        item.domain === domain &&
+        typeof item.lesson === "string" &&
+        item.lesson.toLowerCase() === cleanLesson.toLowerCase()
+      );
+
+      if (duplicate) return false;
+
+      memories.push({
+        domain,
+        lesson: cleanLesson,
+        savedAt: new Date().toISOString()
+      });
+
+      localStorage.setItem(
+        JACE_MEMORY_KEY,
+        JSON.stringify(memories.slice(-MAX_LEARNING_MEMORIES))
+      );
+
+      return true;
+    } catch (error) {
+      console.warn("[J.A.C.E. MEMORY SAVE]", error);
+      return false;
+    }
+  }
+
+  function buildJaceLearningContext(domain) {
+    const memories = getJaceLearningMemory()
+      .filter(item =>
+        item.domain === domain || item.domain === "general"
+      )
+      .slice(-8);
+
+    if (!memories.length) return "";
+
+    return `
+PREVIOUSLY IDENTIFIED LEARNING NOTES:
+
+${memories.map((item, index) =>
+  `${index + 1}. ${item.lesson}`
+).join("\n")}
+
+Use these notes as references. Check their relevance and
+correctness; do not blindly assume every stored note is true.
+`;
+  }
+
 
   // =========================================================
   // 9. ACADEMIC IMAGE SYSTEM
