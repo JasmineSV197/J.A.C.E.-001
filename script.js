@@ -2875,6 +2875,162 @@ ${report.abortedRequests}
   }
 
   // =========================================================
+  // 43A. MODULE NAVIGATION AND DYNAMIC WORKSPACES
+  // =========================================================
+
+  function initialiseJaceModuleNavigation() {
+    const moduleButtons = document.querySelectorAll(
+      ".module-card[data-domain]"
+    );
+
+    const workspaceContainer = document.getElementById(
+      "activeDomainContainer"
+    );
+
+    if (!workspaceContainer || !moduleButtons.length) {
+      console.error(
+        "[J.A.C.E.] Module navigation elements were not found."
+      );
+      return;
+    }
+
+    // Keep each module's workspace instead of recreating it.
+    const workspaceCache = {};
+
+    function createModuleWorkspace(domain) {
+      const spec = domainSpecs[domain];
+
+      if (!spec) return null;
+
+      const workspace = document.createElement("div");
+      workspace.className = "module-workspace";
+      workspace.dataset.domain = domain;
+
+      const heading = document.createElement("h2");
+      heading.textContent = spec.title;
+
+      const subtitle = document.createElement("p");
+      subtitle.textContent = spec.subtitle;
+
+      const inputContainer = document.createElement("div");
+      inputContainer.className = "input-console-container";
+
+      const inputWrapper = document.createElement("div");
+      inputWrapper.className = "input-console";
+
+      const input = document.createElement("textarea");
+      input.id = `${domain}Input`;
+      input.rows = 3;
+      input.placeholder = spec.placeholder;
+      input.setAttribute(
+        "aria-label",
+        `${domain} academic question`
+      );
+
+      input.style.width = "100%";
+      input.style.boxSizing = "border-box";
+      input.style.background = "rgba(21, 16, 38, 0.8)";
+      input.style.border = "1px solid #3d2b56";
+      input.style.borderRadius = "8px";
+      input.style.color = "#e2d9f3";
+      input.style.padding = "10px";
+      input.style.fontFamily = "inherit";
+
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.id = `${domain}File`;
+      fileInput.accept =
+        "image/jpeg,image/png,image/webp,image/bmp";
+      fileInput.setAttribute(
+        "aria-label",
+        `Upload an academic image for ${domain}`
+      );
+
+      const sendButton = document.createElement("button");
+      sendButton.type = "button";
+      sendButton.id = `${domain}Send`;
+      sendButton.className = "execute-btn";
+      sendButton.textContent = "Execute";
+
+      inputWrapper.appendChild(input);
+      inputWrapper.appendChild(fileInput);
+
+      inputContainer.appendChild(inputWrapper);
+      inputContainer.appendChild(sendButton);
+
+      workspace.appendChild(heading);
+      workspace.appendChild(subtitle);
+      workspace.appendChild(inputContainer);
+
+      // Connect this workspace to its specialist AI.
+      connectJaceWorkspace(
+        input,
+        sendButton,
+        domain,
+        fileInput
+      );
+
+      workspaceContainer.appendChild(workspace);
+
+      return workspace;
+    }
+
+    function selectModule(domain, selectedButton) {
+      if (!domainSpecs[domain]) return;
+
+      // Create the workspace only the first time it is selected.
+      if (!workspaceCache[domain]) {
+        workspaceCache[domain] =
+          createModuleWorkspace(domain);
+      }
+
+      const selectedWorkspace = workspaceCache[domain];
+
+      if (!selectedWorkspace) return;
+
+      // Hide all other module workspaces.
+      Object.values(workspaceCache).forEach(workspace => {
+        workspace.classList.add("hidden");
+      });
+
+      // Display the selected module.
+      workspaceContainer.classList.remove("hidden");
+      selectedWorkspace.classList.remove("hidden");
+
+      // Update selected navigation state.
+      moduleButtons.forEach(button => {
+        const isSelected = button === selectedButton;
+
+        button.setAttribute(
+          "aria-pressed",
+          String(isSelected)
+        );
+
+        button.classList.toggle(
+          "active",
+          isSelected
+        );
+      });
+    }
+
+    // Connect all eight module navigation buttons.
+    moduleButtons.forEach(button => {
+      const domain = button.dataset.domain;
+
+      button.setAttribute("aria-pressed", "false");
+
+      button.addEventListener("click", () => {
+        selectModule(domain, button);
+      });
+    });
+
+    console.info(
+      "[J.A.C.E.] Module navigation connected:",
+      Object.keys(domainSpecs)
+    );
+  }
+
+  // =========================================================
   // 44. DIAGNOSTIC ACCESS
   // =========================================================
 
@@ -2938,6 +3094,7 @@ ${report.abortedRequests}
     );
 
     initialiseJaceWorkspaces();
+    initialiseJaceModuleNavigation();
 
     try {
       const connection =
