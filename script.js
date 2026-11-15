@@ -17,7 +17,32 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const KEEP_ALIVE = "10m";
+  // =========================================================
+  // TRAINING DATASET CONNECTION
+  // =========================================================
 
+  const TRAINING_DATASETS = {
+    subjects:
+      "https://raw.githubusercontent.com/JasmineSV197/J.A.C.E.-001/main/training/training/subject_training.jsonl",
+
+    responses:
+      "https://raw.githubusercontent.com/JasmineSV197/J.A.C.E.-001/main/training/training/response_training.jsonl"
+  };
+
+  const MAX_TRAINING_EXAMPLES = 3;
+  const MAX_TRAINING_CONTEXT_CHARS = 5000;
+
+  let subjectTrainingExamples = [];
+  let responseTrainingExamples = [];
+
+  let trainingLoadPromise = null;
+
+  const trainingStatus = {
+    loaded: false,
+    subjectExamples: 0,
+    responseExamples: 0,
+    errors: []
+  };
   // External vision is disabled until a secure backend is configured.
   // Never put private API keys in this public JavaScript file.
   const VISION_API_ENDPOINT = "";
@@ -548,8 +573,20 @@ document.addEventListener("DOMContentLoaded", () => {
       scores.mathematics += 4;
     }
 
-    if (mathematicalCommand) {
+        if (mathematicalCommand) {
       scores.mathematics += 3;
+    }
+
+    // Use labelled training questions as additional
+    // evidence for subject recognition.
+    const learnedSubjectScores =
+      getSubjectDatasetScores(text);
+
+    for (const [subject, score] of Object.entries(
+      learnedSubjectScores
+    )) {
+      scores[subject] =
+        (scores[subject] || 0) + score;
     }
 
     return Object.entries(scores)
@@ -562,7 +599,327 @@ document.addEventListener("DOMContentLoaded", () => {
   function detectSubject(query) {
     return detectSubjects(query)[0] || "general";
   }
+  // =========================================================
+  // 6A. TRAINING DATASET LOADER
+  // =========================================================
 
+  function parseJaceJsonl(text) {
+    const records = [];
+
+    const lines = String(text || "").split(/\r?\n/);
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (!line) continue;
+
+      try {
+        records.push(JSON.parse(line));
+      } catch (error) {
+        console.warn(
+          `[J.A.C.E. TRAINING] Invalid JSONL at line ${i + 1}.`,
+          error
+        );
+      }
+    }
+
+    return records;
+  }
+
+  async function fetchJaceDataset(url, datasetName) {
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-cache"
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `${datasetName} dataset returned HTTP ${response.status}.`
+      );
+    }
+
+    return parseJaceJsonl(await response.text());
+  }
+
+  function extractSubjectTrainingRecords(records) {
+    const examples = [];
+
+    for (const record of records) {
+      // Subject-classification format:
+      // {"question":"...","subject":"mathematics"}
+
+      if (
+        typeof record.question === "string" &&
+        typeof record.subject === "string"
+      ) {
+        examples.push({
+          question: record.question.trim(),
+          subject: record.subject.trim().toLowerCase()
+        });
+
+        continue;
+      }
+
+      // Ignore question-answer records in this file.
+      // They belong to response training.
+    }
+
+    return examples.filter(example =>
+      example.question &&
+      subjectDisplayNames[example.subject]
+    );
+  }
+
+  function extractResponseTrainingRecords(records) {
+    const examples = [];
+
+    for (const record of records) {
+      if (!Array.isArray(record.messages)) continue;
+
+      const userMessage = record.messages.find(
+        message =>
+          message?.role === "user" &&
+          typeof message.content === "string"
+      );
+
+      const assistantMessage = record.messages.find(
+        message =>
+          message?.role === "assistant" &&
+          typeof message.content === "string"
+      );
+
+      if (!userMessage || !assistantMessage) continue;
+
+      const question = userMessage.content.trim();
+      const answer = assistantMessage.content.trim();
+
+      if (!question || !answer) continue;
+
+      examples.push({
+        question,
+        answer
+      });
+    }
+
+    return examples;
+  }
+
+  async function loadTrainingDatasets() {
+    if (trainingLoadPromise) {
+      return trainingLoadPromise;
+    }
+
+    trainingLoadPromise = (async () => {
+      trainingStatus.errors = [];
+
+      const results = await Promise.allSettled([
+        fetchJaceDataset(
+          TRAINING_DATASETS.subjects,
+          "Subject"
+        ),
+
+        fetchJaceDataset(
+          TRAINING_DATASETS.responses,
+          "Response"
+        )
+      ]);
+
+      if (results[0].status === "fulfilled") {
+        subjectTrainingExamples =
+          extractSubjectTrainingRecords(
+            results[0].value
+          );
+      } else {
+        trainingStatus.errors.push(
+          "Subject dataset: " +
+          results[0].reason.message
+        );
+      }
+
+      if (results[1].status === "fulfilled") {
+        responseTrainingExamples =
+          extractResponseTrainingRecords(
+            results[1].value
+          );
+      } else {
+        trainingStatus.errors.push(
+          "Response dataset: " +
+          results[1].reason.message
+        );
+      }
+
+      trainingStatus.subjectExamples =
+        subjectTrainingExamples.length;
+
+      trainingStatus.responseExamples =
+        responseTrainingExamples.length;
+
+      trainingStatus.loaded =
+        results.some(result =>
+          result.status === "fulfilled"
+        );
+
+      console.info(
+        "[J.A.C.E. TRAINING] Dataset loading report:",
+        {
+          loaded: trainingStatus.loaded,
+          subjectExamples:
+            trainingStatus.subjectExamples,
+          responseExamples:
+            trainingStatus.responseExamples,
+          errors: trainingStatus.errors
+        }
+      );
+
+      return trainingStatus;
+    })();
+
+    return trainingLoadPromise;
+  }
+
+  // =========================================================
+  // 6B. SUBJECT DATASET MATCHING
+  // =========================================================
+
+  function getJaceWords(text) {
+    const ignoredWords = new Set([
+      "the", "and", "for", "with", "from",
+      "that", "this", "then", "than", "find",
+      "what", "when", "where", "which", "show",
+      "give", "your", "have", "does", "using",
+      "into", "calculate", "explain", "question",
+      "answer", "please", "solve", "determine"
+    ]);
+
+    return new Set(
+      String(text || "")
+        .toLowerCase()
+        .match(/[a-z]{3,}/g)
+        ?.filter(word => !ignoredWords.has(word)) || []
+    );
+  }
+
+  function getSubjectDatasetScores(query) {
+    const queryWords = getJaceWords(query);
+
+    const scores = {};
+
+    if (queryWords.size < 2) return scores;
+
+    for (const example of subjectTrainingExamples) {
+      const exampleWords =
+        getJaceWords(example.question);
+
+      let overlap = 0;
+
+      for (const word of queryWords) {
+        if (exampleWords.has(word)) {
+          overlap++;
+        }
+      }
+
+      const similarity =
+        overlap / queryWords.size;
+
+      if (overlap >= 2 && similarity >= 0.25) {
+        scores[example.subject] =
+          (scores[example.subject] || 0) + 2;
+      }
+    }
+
+    return scores;
+  }
+
+  // =========================================================
+  // 6C. RESPONSE EXAMPLE RETRIEVAL
+  // =========================================================
+
+  function selectRelevantTrainingExamples(
+    question,
+    domain = "general"
+  ) {
+    const queryWords = getJaceWords(question);
+
+    if (
+      queryWords.size < 2 ||
+      !responseTrainingExamples.length
+    ) {
+      return [];
+    }
+
+    const rankedExamples = [];
+
+    for (const example of responseTrainingExamples) {
+      const exampleWords =
+        getJaceWords(example.question);
+
+      let overlap = 0;
+
+      for (const word of queryWords) {
+        if (exampleWords.has(word)) {
+          overlap++;
+        }
+      }
+
+      if (overlap < 2) continue;
+
+      const similarity =
+        overlap / queryWords.size;
+
+      if (similarity < 0.25) continue;
+
+      const exampleSubjects =
+        detectSubjects(example.question);
+
+      // Prefer examples from the active specialist module.
+      const domainBonus =
+        domain !== "general" &&
+        exampleSubjects.includes(domain)
+          ? 0.25
+          : 0;
+
+      rankedExamples.push({
+        ...example,
+        score: similarity + domainBonus
+      });
+    }
+
+    rankedExamples.sort(
+      (a, b) => b.score - a.score
+    );
+
+    const selected = [];
+    let totalCharacters = 0;
+
+    for (const example of rankedExamples) {
+      if (selected.length >= MAX_TRAINING_EXAMPLES) {
+        break;
+      }
+
+      const estimatedSize =
+        example.question.length +
+        example.answer.length;
+
+      if (
+        totalCharacters + estimatedSize >
+        MAX_TRAINING_CONTEXT_CHARS
+      ) {
+        continue;
+      }
+
+      selected.push(example);
+
+      totalCharacters += estimatedSize;
+    }
+
+    return selected;
+  }
+
+  function getJaceTrainingStatus() {
+    return {
+      ...trainingStatus
+    };
+  }
 
   // =========================================================
   // 7. SPECIALIST ACADEMIC INSTRUCTIONS
@@ -2188,6 +2545,10 @@ ${report.abortedRequests}
   // 31. BUILD OLLAMA REQUEST
   // =========================================================
 
+  // =========================================================
+  // 31. BUILD OLLAMA REQUEST WITH TRAINING EXAMPLES
+  // =========================================================
+
   function buildJaceOllamaPayload({
     question,
     domain = "general",
@@ -2195,11 +2556,55 @@ ${report.abortedRequests}
     imageContext = ""
   }) {
     const systemPrompt =
-      buildSystemPrompt(domain);
+      buildSystemPrompt(domain) +
+      `
+
+TRAINING EXAMPLE GUIDANCE:
+
+You may receive relevant examples from the J.A.C.E. 001
+academic response dataset.
+
+Use these examples as learning references for:
+- Mathematical methods.
+- Problem-solving structure.
+- Academic terminology.
+- Explanation quality.
+- Appropriate answer formatting.
+
+IMPORTANT:
+- Do not blindly copy an example.
+- Do not assume an example is correct without checking it.
+- Adapt the method to the current question.
+- Recalculate all numerical answers independently.
+- If an example is irrelevant, ignore it.
+- Never claim that you have permanently learned or
+  fine-tuned your model from these examples.
+`;
 
     const userContent = imageContext
       ? `${question}\n\n${imageContext}`
       : question;
+
+    const relevantExamples =
+      selectRelevantTrainingExamples(
+        question || imageContext,
+        domain
+      );
+
+    const trainingMessages = [];
+
+    for (const example of relevantExamples) {
+      trainingMessages.push(
+        {
+          role: "user",
+          content: example.question
+        },
+        {
+          role: "assistant",
+          content: example.answer
+        }
+      );
+    }
 
     const messages = [
       {
@@ -2208,6 +2613,9 @@ ${report.abortedRequests}
       },
 
       ...prepareJaceHistory(history),
+
+      // Relevant dataset examples are inserted here.
+      ...trainingMessages,
 
       {
         role: "user",
