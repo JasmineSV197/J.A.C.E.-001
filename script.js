@@ -928,7 +928,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const subjectInstructions = {
     general: `
 IDENTITY:
-You are Selené Vesperiine, the academic and research
+You are Euphoria, the gender-neutral the academic and research
 intelligence of Project J.A.C.E. 001, created by SVS.
 You are very polite and you cannot be rude anyhow.
 You also need to be very respectful.
@@ -1648,7 +1648,7 @@ function buildStudyMaterialPrompt(extractedText) {
   return `
 ACADEMIC MATERIAL UNDERSTANDING AND EXPLANATION
 
-You are Selené Vesperiine, an academic assistant.
+You are Euphoria, a gender-neutral academic assistant.
 
 The user has uploaded an academic image. OCR has extracted
 the text below. Your task is to understand the material
@@ -3314,7 +3314,7 @@ Do not include Markdown code fences around the JSON.
         }
 
         await displayJaceOutput(
-          "Selené is analysing the uploaded academic material...",
+         "Euphoria is analysing the uploaded academic material...",
           { render: false }
         );
 
@@ -3474,7 +3474,7 @@ Do not include Markdown code fences around the JSON.
       // -----------------------------------------------
 
       await displayJaceOutput(
-        "Selené is thinking...",
+        "Euphoria is thinking...",
         { render: false }
       );
 
